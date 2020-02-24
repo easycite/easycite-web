@@ -1,3 +1,6 @@
+using System.Linq;
+using System.Reflection;
+using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -49,6 +52,31 @@ namespace EasyCite
                 endpoints.MapRazorPages();
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Example}/{id?}");
             });
+        }
+
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
+            var assemblies = Assembly
+                .GetEntryAssembly()
+                .GetReferencedAssemblies()
+                .Select(Assembly.Load);
+
+            foreach (var assembly in assemblies)
+            {
+                builder.RegisterAssemblyTypes(assembly)
+                    .Where(t => t.Name.StartsWith("Mock")
+                                && t.IsInterface == false
+                                && t.Name.EndsWith("Processor"))
+                    .AsImplementedInterfaces()
+                    .InstancePerLifetimeScope();
+
+                builder.RegisterAssemblyTypes(assembly)
+                    .Where(t => t.Name.StartsWith("Mock") == false
+                                && t.IsInterface == false
+                                && t.Name.EndsWith("Processor"))
+                    .AsImplementedInterfaces()
+                    .InstancePerLifetimeScope();
+            }
         }
     }
 }
