@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,6 +10,11 @@ namespace EasyCite.Controllers
 {
     public class HomeController : Controller
     {
+        public ActionResult Example()
+        {
+            return View();
+        }
+
         public IActionResult Index()
         {
             return View();
