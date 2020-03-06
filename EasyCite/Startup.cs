@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Autofac;
+using EasyCiteLib;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -11,12 +14,14 @@ namespace EasyCite
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        readonly IConfiguration _configuration;
+        readonly IHostEnvironment _environment;
+        
+        public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
-            Configuration = configuration;
+            _configuration = configuration;
+            _environment = environment;
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -53,27 +58,17 @@ namespace EasyCite
 
         public void ConfigureContainer(ContainerBuilder builder)
         {
-            var assemblies = Assembly
-                .GetEntryAssembly()
+            var containerConfiguration = new ContainerConfiguration(_environment, builder);
+
+            var entryAssembly = Assembly.GetEntryAssembly();
+            Debug.Assert(entryAssembly != null, "entryAssembly != null");
+            
+            IEnumerable<Assembly> assemblies = entryAssembly
                 .GetReferencedAssemblies()
                 .Select(Assembly.Load);
 
-            foreach (var assembly in assemblies)
-            {
-                builder.RegisterAssemblyTypes(assembly)
-                    .Where(t => t.Name.StartsWith("Mock")
-                                && t.IsInterface == false
-                                && t.Name.EndsWith("Processor"))
-                    .AsImplementedInterfaces()
-                    .InstancePerLifetimeScope();
-
-                builder.RegisterAssemblyTypes(assembly)
-                    .Where(t => t.Name.StartsWith("Mock") == false
-                                && t.IsInterface == false
-                                && t.Name.EndsWith("Processor"))
-                    .AsImplementedInterfaces()
-                    .InstancePerLifetimeScope();
-            }
+            foreach (Assembly assembly in assemblies)
+                containerConfiguration.RegisterAssembly(assembly);
         }
     }
 }
