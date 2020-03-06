@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using EasyCiteLib.DataModel;
+using EasyCiteLib.Models;
 
 namespace EasyCiteLib.Interface
 {

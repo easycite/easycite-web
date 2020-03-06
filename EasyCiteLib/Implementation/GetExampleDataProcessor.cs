@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using EasyCiteLib.DataModel;
 using EasyCiteLib.Interface;
+using EasyCiteLib.Models;
 
 namespace EasyCiteLib.Implementation
 {
