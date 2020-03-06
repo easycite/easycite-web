@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EasyCiteLib.DataModel
+namespace EasyCiteLib.Models
 {
     public class ExampleData
     {

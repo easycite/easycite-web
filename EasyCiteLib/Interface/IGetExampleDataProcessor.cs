@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
-using EasyCiteLib.DataModel;
+using EasyCiteLib.Models;
 
 namespace EasyCiteLib.Interface
 {
     public interface IGetExampleDataProcessor
     {
-        Task<ExampleData> Get(int id);
+        Task<ExampleData> GetAsync(int id);
     }
 }

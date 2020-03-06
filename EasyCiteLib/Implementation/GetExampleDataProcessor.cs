@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
-using EasyCiteLib.DataModel;
 using EasyCiteLib.Interface;
+using EasyCiteLib.Models;
 
 namespace EasyCiteLib.Implementation
 {
     public class GetExampleDataProcessor : IGetExampleDataProcessor
     {
-        public async Task<ExampleData> Get(int id)
+        public Task<ExampleData> GetAsync(int id)
         {
             var results = new ExampleData
             {
@@ -17,7 +17,7 @@ namespace EasyCiteLib.Implementation
                 Guid = Guid.NewGuid()
             };
 
-            return results;
+            return Task.FromResult(results);
         }
     }
 }
