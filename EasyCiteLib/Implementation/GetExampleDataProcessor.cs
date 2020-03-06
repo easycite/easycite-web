@@ -7,7 +7,7 @@ namespace EasyCiteLib.Implementation
 {
     public class GetExampleDataProcessor : IGetExampleDataProcessor
     {
-        public async Task<ExampleData> Get(int id)
+        public Task<ExampleData> GetAsync(int id)
         {
             var results = new ExampleData
             {
@@ -17,7 +17,7 @@ namespace EasyCiteLib.Implementation
                 Guid = Guid.NewGuid()
             };
 
-            return results;
+            return Task.FromResult(results);
         }
     }
 }

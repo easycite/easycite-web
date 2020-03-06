@@ -5,6 +5,6 @@ namespace EasyCiteLib.Interface
 {
     public interface IGetExampleDataProcessor
     {
-        Task<ExampleData> Get(int id);
+        Task<ExampleData> GetAsync(int id);
     }
 }

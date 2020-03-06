@@ -19,7 +19,7 @@ namespace EasyCite.Controllers
         }
         public async Task<ActionResult> Example(int id = 1)
         {
-            return View(await _getExampleDataProcessor.Get(id));
+            return View(await _getExampleDataProcessor.GetAsync(id));
         }
 
         public IActionResult Index()
