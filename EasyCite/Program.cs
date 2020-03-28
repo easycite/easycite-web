@@ -19,7 +19,6 @@ namespace EasyCite
             {
                 webHostBuilder
                     .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseIISIntegration()
                     .UseStartup<Startup>();
             });
     }

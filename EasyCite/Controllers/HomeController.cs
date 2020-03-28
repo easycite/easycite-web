@@ -1,22 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
-using EasyCite.Models;
-using EasyCiteLib.Interface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using EasyCite.Models;
 
 namespace EasyCite.Controllers
 {
     public class HomeController : Controller
     {
-        readonly IGetExampleDataProcessor _getExampleDataProcessor;
+        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(IGetExampleDataProcessor getExampleDataProcessor)
+        public HomeController(ILogger<HomeController> logger)
         {
-            _getExampleDataProcessor = getExampleDataProcessor;
-        }
-        public async Task<ActionResult> Example(int id = 1)
-        {
-            return View(await _getExampleDataProcessor.GetAsync(id));
+            _logger = logger;
         }
 
         public IActionResult Index()

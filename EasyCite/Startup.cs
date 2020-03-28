@@ -16,7 +16,7 @@ namespace EasyCite
     {
         readonly IConfiguration _configuration;
         readonly IHostEnvironment _environment;
-        
+
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             _configuration = configuration;
@@ -52,7 +52,7 @@ namespace EasyCite
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Example}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
         }
 
@@ -62,7 +62,7 @@ namespace EasyCite
 
             var entryAssembly = Assembly.GetEntryAssembly();
             Debug.Assert(entryAssembly != null, "entryAssembly != null");
-            
+
             IEnumerable<Assembly> assemblies = entryAssembly
                 .GetReferencedAssemblies()
                 .Select(Assembly.Load);
