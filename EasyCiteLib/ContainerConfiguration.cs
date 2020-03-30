@@ -1,5 +1,6 @@
 using System.Reflection;
 using Autofac;
+using EasyCiteLib.Repository;
 using Microsoft.Extensions.Hosting;
 
 namespace EasyCiteLib
@@ -17,6 +18,8 @@ namespace EasyCiteLib
 
         public void RegisterAssembly(Assembly assembly)
         {
+            _builder.RegisterType<ProjectReferencesContext>().SingleInstance();
+
             if (_environment.IsDevelopment())
             {
                 _builder.RegisterAssemblyTypes(assembly)

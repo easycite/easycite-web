@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Serialization;
 
 namespace EasyCite
 {
@@ -16,23 +17,35 @@ namespace EasyCite
     {
         readonly IConfiguration _configuration;
         readonly IHostEnvironment _environment;
-
-        public Startup(IConfiguration configuration, IHostEnvironment environment)
+        readonly IWebHostEnvironment _webEnvironment;
+        
+        public Startup(IConfiguration configuration, IHostEnvironment environment, IWebHostEnvironment webEnvironment)
         {
             _configuration = configuration;
             _environment = environment;
+            _webEnvironment = webEnvironment;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            var builder = services.AddControllersWithViews();
+
+            builder.AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            });
+
+            if (_webEnvironment.IsDevelopment())
+            {
+                builder.AddRazorRuntimeCompilation();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (_webEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
