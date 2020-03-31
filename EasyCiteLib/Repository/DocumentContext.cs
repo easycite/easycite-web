@@ -79,16 +79,18 @@ namespace EasyCiteLib.Repository
             {
                 string dirFront = refTo ? "-" : "<-";
                 string dirBack = refTo ? "->" : "-";
+                string tagParamName = refTo ? "tagsTo" : "tagsFrom";
                 string matchQueryPart = $"(doc){dirFront}[:CITES*1..{_resultsSearchDepth}]{dirBack}(ref:Document)";
                 
                 if (tags.Count > 0)
                 {
                     return q.Match($"{matchQueryPart}-[:TAGGED_BY]->(k:Keyword)")
-                        .Where("k.keyword in {tags}")
-                        .WithParam("tags", tags);
+                        .Where($"k.keyword in {{{tagParamName}}}")
+                        .WithParam(tagParamName, tags);
                 }
 
-                return q.Match(matchQueryPart);
+                return q.Match(matchQueryPart)
+                    .Where("ref.visited = true");
             }
         }
 
