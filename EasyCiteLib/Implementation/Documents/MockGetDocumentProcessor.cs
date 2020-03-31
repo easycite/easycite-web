@@ -21,9 +21,12 @@ namespace EasyCiteLib.Implementation.Documents
             {
                 Id = documentId,
                 Title = _getRandomDataProcessor.GetText(maxWords: 9),
-                Author = new Author
+                Authors =
                 {
-                    Name = _getRandomDataProcessor.GetName()
+                    new Author
+                    {
+                        Name = _getRandomDataProcessor.GetName()
+                    }
                 },
                 Conference = new Conference
                 {

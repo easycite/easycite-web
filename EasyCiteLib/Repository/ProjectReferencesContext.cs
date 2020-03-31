@@ -8,9 +8,8 @@ namespace EasyCiteLib.Repository
         {
         }
         public List<string> DocumentIds { get; set; } = new List<string> {
-            "asdf",
-            "qwer",
-            "zxcv",
+            "1",
+            "3",
         };
     }
 }

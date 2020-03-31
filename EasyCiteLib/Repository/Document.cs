@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace EasyCiteLib.Repository
 {
@@ -20,7 +21,7 @@ namespace EasyCiteLib.Repository
         public float PageRank { get; set; }
 
         [JsonIgnore]
-        public Author Author { get; set; }
+        public List<Author> Authors { get; set; }
         [JsonIgnore]
         public Conference Conference { get; set; }
     }

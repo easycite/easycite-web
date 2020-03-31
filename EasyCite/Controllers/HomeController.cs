@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using EasyCite.Models;
+using EasyCiteLib.Repository;
 
 namespace EasyCite.Controllers
 {
@@ -27,6 +28,13 @@ namespace EasyCite.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public async Task<IActionResult> Test([FromServices] DocumentContext documentContext)
+        {
+            var docs = await documentContext.GetDocumentsAsync(new[] { "1", "2" });
+
+            return Ok(docs);
         }
     }
 }

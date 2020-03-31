@@ -43,7 +43,7 @@ namespace EasyCiteLib.Implementation.Search
                         PublishDate = d.PublishDate.ToString("M/d/yyyy"),
                         Conference = d.Conference?.Name,
                         Abstract = d.Abstract,
-                        AuthorName = d.Author?.Name
+                        AuthorName = string.Join(", ", d.Authors.Select(a => a.Name))
                     })
                     .ToList(),
                 NumberOfPages = (int)Math.Ceiling((double)totalCount / searchData.ItemsPerPage)
