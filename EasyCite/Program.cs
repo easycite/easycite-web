@@ -17,9 +17,7 @@ namespace EasyCite
             .UseServiceProviderFactory(new AutofacServiceProviderFactory())
             .ConfigureWebHostDefaults(webHostBuilder =>
             {
-                webHostBuilder
-                    .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseStartup<Startup>();
+                webHostBuilder.UseStartup<Startup>();
             });
     }
 }

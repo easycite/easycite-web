@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using Autofac;
 using EasyCiteLib;
+using EasyCiteLib.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +37,8 @@ namespace EasyCite
             {
                 builder.AddRazorRuntimeCompilation();
             }
+
+            services.Configure<Neo4jOptions>(_configuration.GetSection("neo4j"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -71,17 +70,8 @@ namespace EasyCite
 
         public void ConfigureContainer(ContainerBuilder builder)
         {
-            var containerConfiguration = new ContainerConfiguration(_environment, builder);
-
-            var entryAssembly = Assembly.GetEntryAssembly();
-            Debug.Assert(entryAssembly != null, "entryAssembly != null");
-
-            IEnumerable<Assembly> assemblies = entryAssembly
-                .GetReferencedAssemblies()
-                .Select(Assembly.Load);
-
-            foreach (Assembly assembly in assemblies)
-                containerConfiguration.RegisterAssembly(assembly);
+            var containerConfiguration = new LibraryModule(_environment);
+            builder.RegisterModule(containerConfiguration);
         }
     }
 }

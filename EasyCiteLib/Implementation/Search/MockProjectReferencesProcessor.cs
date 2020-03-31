@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Search;
@@ -41,26 +42,17 @@ namespace EasyCiteLib.Implementation.Search
 
         public async Task<Results<List<ReferenceVm>>> GetAllAsync(int projectId)
         {
-            var results = new Results<List<ReferenceVm>>
+            var documents = await _getDocumentProcessor.GetDocumentsAsync(_context.DocumentIds);
+
+            return new Results<List<ReferenceVm>>
             {
-                Data = new List<ReferenceVm>()
-            };
-
-            var documentsEnumerable = _getDocumentProcessor.GetDocumentsAsync(_context.DocumentIds);
-
-            var list = new List<ReferenceVm>();
-
-            await foreach (var document in documentsEnumerable)
-            {
-                results.Data.Add(new ReferenceVm
+                Data = documents.Select(document => new ReferenceVm
                 {
                     Id = document.Id,
                     Title = document.Title,
                     Abstract = document.Abstract
-                });
-            }
-
-            return results;
+                }).ToList()
+            };
         }
     }
 }

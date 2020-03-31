@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Helpers;
 using EasyCiteLib.Repository;
@@ -13,25 +15,22 @@ namespace EasyCiteLib.Implementation.Documents
         {
             _getRandomDataProcessor = getRandomDataProcessor;
         }
-        public async IAsyncEnumerable<Document> GetDocumentsAsync(IEnumerable<string> documentIds)
+        public async Task<IList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds)
         {
-            foreach (string documentId in documentIds)
+            return documentIds.Select(documentId => new Document
             {
-                yield return new Document
+                Id = documentId,
+                Title = _getRandomDataProcessor.GetText(maxWords: 9),
+                Author = new Author
                 {
-                    Id = documentId,
-                    Title = _getRandomDataProcessor.GetText(maxWords: 9),
-                    Author = new Author
-                    {
-                        Name = _getRandomDataProcessor.GetName()
-                    },
-                    Conference = new Conference
-                    {
-                        Name = _getRandomDataProcessor.GetText(maxWords: 4)
-                    },
-                    Abstract = _getRandomDataProcessor.GetParagraph()
-                };
-            }
+                    Name = _getRandomDataProcessor.GetName()
+                },
+                Conference = new Conference
+                {
+                    Name = _getRandomDataProcessor.GetText(maxWords: 4)
+                },
+                Abstract = _getRandomDataProcessor.GetParagraph()
+            }).ToList();
         }
     }
 }

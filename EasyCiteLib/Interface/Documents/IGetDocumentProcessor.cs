@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using EasyCiteLib.Repository;
 
 namespace EasyCiteLib.Interface.Documents
 {
     public interface IGetDocumentProcessor
     {
-        IAsyncEnumerable<Document> GetDocumentsAsync(IEnumerable<string> documentIds);
+        Task<IList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds);
     }
 }
