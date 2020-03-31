@@ -8,6 +8,7 @@ function SearchResultsMvvm(projectId) {
     self.SearchResults = ko.observableArray();
     self.PageNumber = ko.observable(0);
     self.PageNumberDisplay = ko.pureComputed(() => self.PageNumber() + 1);
+    self.ItemsPerPage = ko.observable(10); // TODO: make this configurable
     self.NumberOfPages = ko.observable(1);
 
     self.SearchTags = ko.observable('');
@@ -85,8 +86,9 @@ function SearchResultsMvvm(projectId) {
 
         var searchData = {
             PageNumber: self.PageNumber(),
+            ItemsPerPage: self.ItemsPerPage(),
             SearchByIds: self.References().map(element => element.Id()),
-            SearchTags: self.SearchTags()
+            SearchTags: self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s)
         };
 
         return $.post(self.SaveUrl(), searchData).then(results => {

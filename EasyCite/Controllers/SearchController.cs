@@ -52,6 +52,7 @@ namespace EasyCite.Controllers
         [HttpPost]
         public async Task<JsonResult> Search(SearchData searchData)
         {
+            searchData.SearchTags?.RemoveAll(string.IsNullOrWhiteSpace);
             return Json(await _searchForArticlesProcessor.SearchAsync(searchData));
         }
     }
