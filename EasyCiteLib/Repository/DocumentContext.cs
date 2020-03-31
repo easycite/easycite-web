@@ -30,18 +30,15 @@ namespace EasyCiteLib.Repository
                 .Match("(d:Document)")
                 .Where("d.id = docId")
                 .OptionalMatch("(a:Author)-[:AUTHORED]->(d)")
-                .OptionalMatch("(d)-[:PUBLISHED_IN]->(c:Conference)")
                 .Return((d, c) => new
                 {
                     Document = d.As<Document>(),
                     Authors = Return.As<IEnumerable<Author>>("collect(a)"),
-                    Conference = c.As<Conference>()
                 });
 
             return (await query.ResultsAsync).Select(r =>
             {
                 r.Document.Authors = r.Authors.ToList();
-                r.Document.Conference = r.Conference;
                 return r.Document;
             }).ToList();
         }

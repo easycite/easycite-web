@@ -28,10 +28,7 @@ namespace EasyCiteLib.Implementation.Documents
                         Name = _getRandomDataProcessor.GetName()
                     }
                 },
-                Conference = new Conference
-                {
-                    Name = _getRandomDataProcessor.GetText(maxWords: 4)
-                },
+                PublicationTitle = _getRandomDataProcessor.GetText(maxWords: 4),
                 Abstract = _getRandomDataProcessor.GetParagraph()
             }).ToList();
         }

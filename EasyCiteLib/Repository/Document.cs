@@ -14,15 +14,13 @@ namespace EasyCiteLib.Repository
         public DateTime PublishDate { get; set; }
         [JsonProperty("abstract")]
         public string Abstract { get; set; }
-        [JsonProperty("journal")]
-        public string Journal { get; set; }
+        [JsonProperty("publicationTitle")]
+        public string PublicationTitle { get; set; }
         
         [JsonProperty("pageRank")]
         public float PageRank { get; set; }
 
         [JsonIgnore]
         public List<Author> Authors { get; set; }
-        [JsonIgnore]
-        public Conference Conference { get; set; }
     }
 }

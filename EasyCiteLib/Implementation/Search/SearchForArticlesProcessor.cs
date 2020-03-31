@@ -41,7 +41,7 @@ namespace EasyCiteLib.Implementation.Search
                         Id = d.Id,
                         Title = d.Title,
                         PublishDate = d.PublishDate.ToString("M/d/yyyy"),
-                        Conference = d.Conference?.Name,
+                        Conference = d.PublicationTitle,
                         Abstract = d.Abstract,
                         AuthorName = string.Join(", ", d.Authors.Select(a => a.Name))
                     })
