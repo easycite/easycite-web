@@ -1,14 +1,12 @@
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using Autofac;
 using EasyCiteLib;
+using EasyCiteLib.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Serialization;
 
 namespace EasyCite
 {
@@ -16,23 +14,37 @@ namespace EasyCite
     {
         readonly IConfiguration _configuration;
         readonly IHostEnvironment _environment;
-
-        public Startup(IConfiguration configuration, IHostEnvironment environment)
+        readonly IWebHostEnvironment _webEnvironment;
+        
+        public Startup(IConfiguration configuration, IHostEnvironment environment, IWebHostEnvironment webEnvironment)
         {
             _configuration = configuration;
             _environment = environment;
+            _webEnvironment = webEnvironment;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            var builder = services.AddControllersWithViews();
+
+            builder.AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            });
+
+            if (_webEnvironment.IsDevelopment())
+            {
+                builder.AddRazorRuntimeCompilation();
+            }
+
+            services.Configure<Neo4jOptions>(_configuration.GetSection("neo4j"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (_webEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -58,17 +70,8 @@ namespace EasyCite
 
         public void ConfigureContainer(ContainerBuilder builder)
         {
-            var containerConfiguration = new ContainerConfiguration(_environment, builder);
-
-            var entryAssembly = Assembly.GetEntryAssembly();
-            Debug.Assert(entryAssembly != null, "entryAssembly != null");
-
-            IEnumerable<Assembly> assemblies = entryAssembly
-                .GetReferencedAssemblies()
-                .Select(Assembly.Load);
-
-            foreach (Assembly assembly in assemblies)
-                containerConfiguration.RegisterAssembly(assembly);
+            var containerConfiguration = new LibraryModule(_environment);
+            builder.RegisterModule(containerConfiguration);
         }
     }
 }
