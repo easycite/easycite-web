@@ -20,7 +20,7 @@ namespace EasyCiteLib.Implementation.Search
 
         public async Task<Results<SearchResultsVm>> SearchAsync(SearchData searchData)
         {
-            int offset = Math.Max(searchData.PageNumber - 1, 0) * searchData.ItemsPerPage;
+            int offset = Math.Max(searchData.PageNumber, 0) * searchData.ItemsPerPage;
             
             IList<Document> documents;
             int totalCount;

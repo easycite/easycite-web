@@ -8,8 +8,7 @@ namespace EasyCiteLib.Repository
         {
         }
         public List<string> DocumentIds { get; set; } = new List<string> {
-            "1",
-            "3",
+            "1676196",
         };
     }
 }

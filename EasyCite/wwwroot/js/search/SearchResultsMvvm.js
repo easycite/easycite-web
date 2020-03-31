@@ -14,7 +14,7 @@ function SearchResultsMvvm(projectId) {
     self.SearchTags = ko.observable('');
     self.SearchTags.subscribe(() => {
         self.IsOutOfSync(true);
-    })
+    });
 
     self.IsOutOfSync = ko.observable(false);
 
@@ -124,7 +124,7 @@ function SearchResultsMvvm(projectId) {
 
     self.SearchNext = () => {
         let oldPage = self.PageNumber();
-        self.PageNumber(Math.min(self.NumberOfPages(), oldPage + 1));
+        self.PageNumber(Math.min(self.NumberOfPages() - 1, oldPage + 1));
         
         if(self.PageNumber() !== oldPage)
             self.Search();

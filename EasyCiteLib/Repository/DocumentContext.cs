@@ -57,6 +57,10 @@ namespace EasyCiteLib.Repository
             queryPart = GetDocumentMatchClause(queryPart, true)
                 .Return<DocumentResult>("ref")
                 .Union();
+            queryPart = queryPart
+                .Unwind(documentIds, "docId")
+                .Match("(doc:Document)")
+                .Where("doc.id = docId");
             var query = GetDocumentMatchClause(queryPart, false)
                 .Return<DocumentResult>("ref");
 
