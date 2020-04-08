@@ -1,18 +1,19 @@
+using System;
+using System.Reflection;
 using Autofac;
 using EasyCiteLib.Configuration;
 using EasyCiteLib.Repository;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Neo4jClient;
-using System;
-using System.Reflection;
+using Module = Autofac.Module;
 
 namespace EasyCiteLib
 {
-    public class LibraryModule : Autofac.Module
+    public class LibraryModule : Module
     {
         readonly IHostEnvironment _environment;
-        
+
         public LibraryModule(IHostEnvironment environment)
         {
             _environment = environment;
@@ -26,28 +27,42 @@ namespace EasyCiteLib
             {
                 builder.RegisterAssemblyTypes(assembly)
                     .Where(t => t.Name.StartsWith("Mock")
-                        && t.IsInterface == false
+                        && !t.IsInterface
                         && t.Name.EndsWith("Processor"))
                     .AsImplementedInterfaces()
                     .InstancePerLifetimeScope();
+                
+                builder.RegisterAssemblyTypes(assembly)
+                    .Where(t => t.Name.StartsWith("Mock")
+                        && !t.IsInterface
+                        && t.Name.EndsWith("Manager"))
+                    .AsImplementedInterfaces()
+                    .SingleInstance();
             }
 
             builder.RegisterAssemblyTypes(assembly)
-                .Where(t => t.Name.StartsWith("Mock") == false
-                    && t.IsInterface == false
+                .Where(t => !t.Name.StartsWith("Mock")
+                    && !t.IsInterface
                     && t.Name.EndsWith("Processor"))
                 .AsImplementedInterfaces()
                 .InstancePerLifetimeScope();
+            
+            builder.RegisterAssemblyTypes(assembly)
+                .Where(t => !t.Name.StartsWith("Mock")
+                    && !t.IsInterface
+                    && t.Name.EndsWith("Manager"))
+                .AsImplementedInterfaces()
+                .SingleInstance();
 
             builder.Register(context =>
-            {
-                var neo4jOptions = context.Resolve<IOptionsSnapshot<Neo4jOptions>>();
-                
-                return NeoServerConfiguration.GetConfiguration(new Uri(neo4jOptions.Value.Uri), neo4jOptions.Value.UserName, neo4jOptions.Value.Password);
-            }).SingleInstance();
+                {
+                    var neo4jOptions = context.Resolve<IOptionsSnapshot<Neo4jOptions>>();
 
-            builder
-                .RegisterType<GraphClientFactory>()
+                    return NeoServerConfiguration.GetConfiguration(new Uri(neo4jOptions.Value.Uri), neo4jOptions.Value.UserName, neo4jOptions.Value.Password);
+                })
+                .SingleInstance();
+
+            builder.RegisterType<GraphClientFactory>()
                 .As<IGraphClientFactory>()
                 .SingleInstance();
 
