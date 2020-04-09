@@ -7,20 +7,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using EasyCite.Models;
 using EasyCiteLib.Repository;
+using EasyCiteLib.Repository.EasyCite;
 
 namespace EasyCite.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IGenericDataContextAsync<User> _userContext;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger,
+                              IGenericDataContextAsync<User> userContext)
         {
             _logger = logger;
+            _userContext = userContext;
         }
 
         public IActionResult Index()
         {
+            var test = _userContext.DataSet;
             return View();
         }
 

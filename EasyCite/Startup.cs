@@ -1,8 +1,11 @@
 using Autofac;
 using EasyCiteLib;
 using EasyCiteLib.Configuration;
+using EasyCiteLib.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,7 +41,19 @@ namespace EasyCite
                 builder.AddRazorRuntimeCompilation();
             }
 
+            // Database configuration
             services.Configure<Neo4jOptions>(_configuration.GetSection("neo4j"));
+            services.AddDbContext<EasyCiteDbContext>();
+            services.AddTransient(typeof(IGenericDataContextAsync<>), typeof(GenericDataContextAsync<>));
+
+            // Google login configuration
+            services.AddAuthentication()
+                .AddGoogle(options => {
+                    var googleAuthNSection = _configuration.GetSection("Authentication:Google");
+
+                    options.ClientId = googleAuthNSection["ClientId"];
+                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
