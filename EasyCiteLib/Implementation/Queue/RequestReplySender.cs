@@ -60,7 +60,7 @@ namespace EasyCiteLib.Implementation.Queue
         private async Task OnMessageReceived(Message message, CancellationToken cancellation)
         {
             if (_pendingRequests.TryGetValue(message.CorrelationId, out TaskCompletionSource<Message> tcs))
-                tcs.SetResult(message);
+                tcs.TrySetResult(message);
             else
                 await _receiver.DeadLetterAsync(message.SystemProperties.LockToken);
         }
