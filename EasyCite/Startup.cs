@@ -2,10 +2,10 @@ using Autofac;
 using EasyCiteLib;
 using EasyCiteLib.Configuration;
 using EasyCiteLib.Repository;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,7 +18,7 @@ namespace EasyCite
         readonly IConfiguration _configuration;
         readonly IHostEnvironment _environment;
         readonly IWebHostEnvironment _webEnvironment;
-        
+
         public Startup(IConfiguration configuration, IHostEnvironment environment, IWebHostEnvironment webEnvironment)
         {
             _configuration = configuration;
@@ -47,13 +47,22 @@ namespace EasyCite
             services.AddTransient(typeof(IGenericDataContextAsync<>), typeof(GenericDataContextAsync<>));
 
             // Google login configuration
-            services.AddAuthentication()
-                .AddGoogle(options => {
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                })
+                .AddCookie()
+                .AddGoogle(options =>
+                {
                     var googleAuthNSection = _configuration.GetSection("Authentication:Google");
 
                     options.ClientId = googleAuthNSection["ClientId"];
                     options.ClientSecret = googleAuthNSection["ClientSecret"];
                 });
+
+            services.AddHttpContextAccessor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
