@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Account;
 using EasyCiteLib.Models.Account;
 using EasyCiteLib.Repository;
 using EasyCiteLib.Repository.EasyCite;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyCiteLib.Implementation.Account
 {
@@ -14,8 +16,11 @@ namespace EasyCiteLib.Implementation.Account
         {
             _userContext = userContext;
         }
-        public Task CreateIfNotExistsAsync(UserSaveData saveData)
+        public async Task CreateIfNotExistsAsync(UserSaveData saveData)
         {
+            if (await _userContext.DataSet.Where(u => u.GoogleIdentifier == saveData.ProviderKey).AnyAsync())
+                return;
+
             _userContext.DataSet.Add(new User
             {
                 GoogleIdentifier = saveData.ProviderKey,
@@ -23,8 +28,7 @@ namespace EasyCiteLib.Implementation.Account
                 Lastname = saveData.Lastname,
                 Email = saveData.Email
             });
-
-            return _userContext.SaveChangesAsync();
+            await _userContext.SaveChangesAsync();
         }
     }
 }
