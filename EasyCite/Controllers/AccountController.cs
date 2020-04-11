@@ -37,15 +37,18 @@ namespace EasyCite.Controllers
 
         public async Task<IActionResult> LoginCallback(string returnUrl = "/")
         {
-            var userData = new UserSaveData
+            if (User.Identity.IsAuthenticated)
             {
-                ProviderKey = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value,
-                Email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
-                Firstname = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value,
-                Lastname = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value
-            };
+                var userData = new UserSaveData
+                {
+                    ProviderKey = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value,
+                    Email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
+                    Firstname = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value,
+                    Lastname = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value
+                };
 
-            await _createUserProcessor.CreateIfNotExistsAsync(userData);
+                await _createUserProcessor.CreateIfNotExistsAsync(userData);
+            }
 
             return Redirect(returnUrl);
         }
