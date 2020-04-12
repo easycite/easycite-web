@@ -1,6 +1,10 @@
+using System.Linq;
+using System.Security.Claims;
 using Autofac;
 using EasyCiteLib;
 using EasyCiteLib.Configuration;
+using EasyCiteLib.Interface.Account;
+using EasyCiteLib.Models.Account;
 using EasyCiteLib.Repository;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -60,6 +64,22 @@ namespace EasyCite
 
                     options.ClientId = googleAuthNSection["ClientId"];
                     options.ClientSecret = googleAuthNSection["ClientSecret"];
+                    options.Events.OnCreatingTicket = async ctx =>
+                    {
+                        var userData = new UserSaveData
+                        {
+                            ProviderKey = ctx.Identity.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value,
+                            Email = ctx.Identity.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
+                            Firstname = ctx.Identity.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value,
+                            Lastname = ctx.Identity.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value
+                        };
+
+                        var createUserProcessor = ctx.HttpContext.RequestServices.GetRequiredService<ICreateUserProcessor>();
+
+                        var userId = await createUserProcessor.CreateIfNotExistsAsync(userData);
+
+                        ctx.Identity.AddClaim(new Claim(ClaimTypes.Sid, userId.ToString()));
+                    };
                 });
 
             services.AddHttpContextAccessor();
