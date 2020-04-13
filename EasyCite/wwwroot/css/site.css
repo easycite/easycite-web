@@ -8,3 +8,8 @@ for details on configuring this project to bundle and minify static web assets. 
 .cursor-default {
     cursor: default;
 }
+
+.modal.import-references .ui-autocomplete .ui-menu-item {
+    padding: 3px 8px;
+    border-top: 1px solid #ccc;
+}

@@ -26,6 +26,7 @@ function SearchResultsMvvm(projectId) {
     self.SaveUrl = ko.observable(ApiUrls['Search']);
     self.AddReferenceUrl = ko.observable(ApiUrls['AddReference']);
     self.RemoveReferenceUrl = ko.observable(ApiUrls['RemoveReference']);
+    self.ImportReferencesUrl = ko.observable(ApiUrls['ImportReferences']);
 
     // ---------- Functions ---------- //
     self.LoadReferences = function (references) {        
@@ -72,7 +73,7 @@ function SearchResultsMvvm(projectId) {
         self.IsLoading(true);
 
         return $.get(self.LoadUrl(), {
-            projectId: 1
+            projectId: self.ProjectId()
         }).then(results => {
             self.LoadReferences(results.Data);
         }).always(() => {
@@ -129,6 +130,17 @@ function SearchResultsMvvm(projectId) {
         if(self.PageNumber() !== oldPage)
             self.Search();
     };
+
+    self.ImportReferencesModal = new ImportReferencesMvvm();
+    self.ImportReferencesModal.OnSave.AddListener(self, function (importIds) {
+        $.post(self.ImportReferencesUrl(), {
+            projectId: self.ProjectId(),
+            documentIds: importIds
+        }).done(function () {
+            self.Load();
+            self.IsOutOfSync(true);
+        });
+    });
 
     self.Load().then(() => {
         return self.Search();

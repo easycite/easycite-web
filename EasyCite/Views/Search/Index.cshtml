@@ -8,7 +8,9 @@
     <script src="~/js/event-handler.js"></script>
     <script src="~/js/ko/slideVisible.js"></script>
     <script src="~/js/ko/enterKey.js"></script>
+    <script src="~/js/ko/element.js"></script>
     <script src="~/js/search/SearchResultsMvvm.js"></script>
+    <script src="~/js/search/ImportReferencesMvvm.js"></script>
 }
 
 @section koApplyBindings {
@@ -20,6 +22,9 @@
             self['AddReference'] = '@Url.Action("AddReference", "Search")';
             self['RemoveReference'] = '@Url.Action("RemoveReference", "Search")';
             self['Search'] = '@Url.Action("Search", "Search")';
+            self['SearchByName'] = '@Url.Action("SearchByName")';
+            self['UploadAndSearchByBibFile'] = '@Url.Action("UploadAndSearchByBibFile")';
+            self['ImportReferences'] = '@Url.Action("ImportReferences")';
         }();
 
         $(() => {
@@ -33,7 +38,7 @@
     <div class="row">
         <div class="col-12 mb-3 order-xl-last col-xl-4 mb-xl-0">
             <div class="d-flex justify-content-between align-items-center bg-dark text-light p-2 px-3">
-                <a href="#" class="text-light"><i class="fas fa-upload"></i></a>
+                <a href="#" class="text-light" data-bind="click: ImportReferencesModal.Show"><i class="fas fa-upload"></i></a>
                 References
                 <a href="#" class="text-light"><i class="fas fa-download"></i></a>
             </div>
@@ -119,3 +124,9 @@
         </div>
     </div>
 </div>
+
+<div data-bind="template: { name: 'import-references-modal', data: ImportReferencesModal } "></div>
+
+<script type="text/html" id="import-references-modal">
+    @{ await Html.RenderPartialAsync("Import"); }
+</script>
