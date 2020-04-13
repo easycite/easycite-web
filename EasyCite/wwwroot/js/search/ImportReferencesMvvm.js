@@ -18,22 +18,6 @@
         // reset state information
         self.ResetToSearchMode();
         
-        // bind autocomplete
-        $(self.SearchElement()).autocomplete({
-            source: self.SearchByNameUrl(),
-            select: function (event, ui) {
-                event.preventDefault();
-                console.log(ui.item.Title);
-                self.SearchText(ui.item.Title);
-            },
-            appendTo: '.modal.import-references'
-        }).data('ui-autocomplete')._renderItem= function (ul, item) {
-            return $('<li>')
-                .attr('data-value', item.Id)
-                .append(item.Title)
-                .appendTo(ul);
-        };
-        
         $(self.ModalElement()).modal('show');
     };
     
@@ -85,7 +69,7 @@
     self.OnSave = new EventHandler(self);
     
     self.ModalHidden = () => {
-        $(self.SearchElement()).autocomplete('destroy');
+        // unbind any external events
     };
 }
 
