@@ -59,8 +59,9 @@ namespace EasyCite.Controllers
             return Json(results);
         }
 
-        public async Task<JsonResult> ImportReferences(int projectId, IEnumerable<string> documentIds)
+        public async Task<JsonResult> ImportReferences(int projectId, string[] documentIds)
         {
+            // TODO: check if exists in DB and send message if necessary
             IEnumerable<Task<Results<bool>>> tasks = documentIds.Select(d => _projectReferencesProcessor.AddAsync(projectId, d));
             Results<bool>[] allResults = await Task.WhenAll(tasks);
 
@@ -81,10 +82,13 @@ namespace EasyCite.Controllers
             return Json(await _searchForArticlesProcessor.SearchAsync(searchData));
         }
 
-        public async Task<JsonResult> SearchByName(string term)
+        public async Task<IActionResult> SearchByName(string term)
         {
-            var results = await _documentSearchProcessor.SearchByNameAsync(term).ToListAsync();
-            return Json(results);
+            if (string.IsNullOrEmpty(term))
+                return BadRequest();
+            
+            var results = await _documentSearchProcessor.SearchByNameAsync(term);
+            return Json(results.Results);
         }
 
         public async Task<JsonResult> UploadAndSearchByBibFile(IFormFile file)
@@ -94,8 +98,8 @@ namespace EasyCite.Controllers
                 fileContent = await streamReader.ReadToEndAsync();
 
             IEnumerable<string> titles = await _bibFileProcessor.GetTitlesAsync(fileContent);
-            IEnumerable<Task<DocumentSearchData>> tasks = titles.Select(t => _documentSearchProcessor.GetByNameExactAsync(t));
-            List<DocumentSearchData> results = (await Task.WhenAll(tasks)).Where(r => r != null).ToList();
+            IEnumerable<Task<DocumentSearchResults.Article>> tasks = titles.Select(t => _documentSearchProcessor.GetByNameExactAsync(t));
+            List<DocumentSearchResults.Article> results = (await Task.WhenAll(tasks)).Where(r => r != null).ToList();
 
             return Json(results);
         }
