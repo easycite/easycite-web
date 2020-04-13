@@ -9,7 +9,6 @@
     self.SearchByNameUrl = ko.observable(ApiUrls['SearchByName']);
     self.UploadAndSearchByBibFileUrl = ko.observable(ApiUrls['UploadAndSearchByBibFile']);
     
-    // either 'search', 'file', or ''
     self.IsResultMode = ko.observable(false);
     self.SearchText = ko.observable('');
     self.SearchResults = ko.observableArray();
