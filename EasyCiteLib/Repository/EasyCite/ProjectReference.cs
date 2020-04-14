@@ -7,7 +7,6 @@ namespace EasyCiteLib.Repository.EasyCite
         public int ProjectId { get; set; }
         public Project Project { get; set; }
 
-        public int ReferenceId { get; set; }
-        public Reference Reference { get; set; }
+        public string ReferenceId { get; set; }
     }
 }

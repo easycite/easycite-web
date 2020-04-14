@@ -16,6 +16,6 @@ namespace EasyCiteLib.Repository.EasyCite
         public string FirstnameLastname => $"{Firstname} {Lastname}";
         public string LastnameFirstname => $"{Lastname}, {Firstname}";
 
-        public ICollection<Project> Projects { get; set; } = new HashSet<Project>();
+        public List<Project> Projects { get; set; } = new List<Project>();
     }
 }

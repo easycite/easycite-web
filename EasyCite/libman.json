@@ -68,6 +68,14 @@
         "webfonts/fa-solid-900.woff",
         "webfonts/fa-solid-900.woff2"
       ]
+    },
+    {
+      "provider": "cdnjs",
+      "library": "knockout-validation@2.0.4",
+      "destination": "wwwroot/lib/knockout-validation/",
+      "files": [
+        "knockout.validation.min.js"
+      ]
     }
   ]
 }

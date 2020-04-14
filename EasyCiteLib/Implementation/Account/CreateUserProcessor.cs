@@ -16,19 +16,24 @@ namespace EasyCiteLib.Implementation.Account
         {
             _userContext = userContext;
         }
-        public async Task CreateIfNotExistsAsync(UserSaveData saveData)
+        public async Task<int> CreateIfNotExistsAsync(UserSaveData saveData)
         {
-            if (await _userContext.DataSet.Where(u => u.GoogleIdentifier == saveData.ProviderKey).AnyAsync())
-                return;
+            var user = await _userContext.DataSet.FirstOrDefaultAsync(u => u.GoogleIdentifier == saveData.ProviderKey); 
+            if (user != null)
+                return user.Id;
 
-            _userContext.DataSet.Add(new User
+            user = new User
             {
                 GoogleIdentifier = saveData.ProviderKey,
                 Firstname = saveData.Firstname,
                 Lastname = saveData.Lastname,
                 Email = saveData.Email
-            });
+            };
+            _userContext.DataSet.Add(user);
+            
             await _userContext.SaveChangesAsync();
+
+            return user.Id;
         }
     }
 }

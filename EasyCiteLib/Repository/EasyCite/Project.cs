@@ -4,6 +4,7 @@ namespace EasyCiteLib.Repository.EasyCite
 {
     public class Project
     {
+
         public int Id { get; set; }
         public string Name { get; set; }
 
@@ -11,6 +12,6 @@ namespace EasyCiteLib.Repository.EasyCite
         public int UserId { get; set; }
         public User User { get; set; }
 
-        public ICollection<ProjectReference> ProjectReferences { get; set; } = new HashSet<ProjectReference>();
+        public List<ProjectReference> ProjectReferences { get; set; } = new List<ProjectReference>();
     }
 }
