@@ -1,16 +1,46 @@
-function SearchResultsMvvm(projectId) {
+function SearchResultsMvvm(results) {
     var self = this;
     self.IsLoading = ko.observable(false);
 
     // --------- Observables --------- //
-    self.ProjectId = ko.observable(projectId);
+    self.ProjectId = ko.observable(results.Data.ProjectId);
+    
+    // References
     self.References = ko.observableArray();
+    for (let i = 0; i < results.Data.References.length; i++) {
+        const reference = results.Data.References[i];
+        self.References.push(new ReferenceVm(reference));
+    }
+
     self.SearchResults = ko.observableArray();
     self.PageNumber = ko.observable(0);
     self.PageNumberDisplay = ko.pureComputed(() => self.PageNumber() + 1);
     self.ItemsPerPage = ko.observable(10); // TODO: make this configurable
     self.NumberOfPages = ko.observable(1);
 
+    // Search Depth
+    self.SearchDepthOptions = ko.observableArray();
+    for (let i = 0; i < results.Data.SearchDepths.length; i++) {
+        const searchDepth = results.Data.SearchDepths[i];
+        self.SearchDepthOptions.push(new DropdownOption(searchDepth.Value, searchDepth.Text));
+    }
+
+    self.SearchDepth = ko.observable(results.Data.DefaultSearchDepth);
+    self.SearchDepthConfig = ko.observable({
+        max: self.SearchDepthOptions().reduce(
+            (acc, cur) => Math.max(acc, cur.Value())
+        , 0)
+    });
+
+    // Search Type
+    self.SearchTypes = ko.observableArray();
+    for (let i = 0; i < results.Data.SortOptions.length; i++) {
+        const option = results.Data.SortOptions[i];
+        self.SearchTypes.push(new DropdownOption(option.Value, option.Text));
+    }
+    self.SelectedSearchType = ko.observable(results.Data.DefaultSortOption);
+
+    // Search Tags
     self.SearchTags = ko.observable('');
     self.SearchTags.subscribe(() => {
         self.IsOutOfSync(true);
@@ -19,7 +49,7 @@ function SearchResultsMvvm(projectId) {
     self.IsOutOfSync = ko.observable(false);
 
     self.PreviousIsDisabled = ko.pureComputed(() => self.PageNumber() === 0);
-    self.NextIsDisabled = ko.pureComputed(() => self.PageNumberDisplay() === self.NumberOfPages());
+    self.NextIsDisabled = ko.pureComputed(() => self.PageNumberDisplay() >= self.NumberOfPages());
 
     // ------------ Urls ------------- //
     self.LoadUrl = ko.observable(ApiUrls['GetReferences']);
@@ -91,7 +121,9 @@ function SearchResultsMvvm(projectId) {
                 ItemsPerPage: self.ItemsPerPage(),
                 SearchByIds: self.References().map(element => element.Id()),
                 SearchTags: self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s),
-                ForceNoCache: self.IsOutOfSync()
+                ForceNoCache: self.IsOutOfSync(),
+                SearchSortType: self.SelectedSearchType(),
+                SearchDepth: self.SearchDepth()
             }
         };
         return $.post(self.SaveUrl(), data).then(results => {

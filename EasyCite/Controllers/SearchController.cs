@@ -9,17 +9,20 @@ namespace EasyCite.Controllers
     {
         private readonly IProjectReferencesProcessor _projectReferencesProcessor;
         private readonly ISearchForArticlesProcessor _searchForArticlesProcessor;
+        private readonly ILoadSearchProcessor _loadSearchProcessor;
 
         public SearchController(
             IProjectReferencesProcessor projectReferencesProcessor,
-            ISearchForArticlesProcessor searchForArticlesProcessor)
+            ISearchForArticlesProcessor searchForArticlesProcessor,
+            ILoadSearchProcessor loadSearchProcessor)
         {
             _projectReferencesProcessor = projectReferencesProcessor;
             _searchForArticlesProcessor = searchForArticlesProcessor;
+            _loadSearchProcessor = loadSearchProcessor;
         }
         public async Task<IActionResult> Index(int projectId)
         {
-            return View(projectId);
+            return View(await _loadSearchProcessor.LoadAsync(projectId));
         }
 
         public async Task<JsonResult> GetReferences(int projectId)
