@@ -3,12 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
-using EasyCiteLib.Interface.Queue;
 using EasyCiteLib.Interface.Search;
 using EasyCiteLib.Models.Search;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace EasyCite.Controllers
 {
@@ -18,24 +16,17 @@ namespace EasyCite.Controllers
         private readonly ISearchForArticlesProcessor _searchForArticlesProcessor;
         private readonly IDocumentSearchProcessor _documentSearchProcessor;
         private readonly IBibFileProcessor _bibFileProcessor;
-        private readonly IQueueManager _queueManager;
-
-        private readonly int _scrapeDepth;
 
         public SearchController(
             IProjectReferencesProcessor projectReferencesProcessor,
             ISearchForArticlesProcessor searchForArticlesProcessor,
             IDocumentSearchProcessor documentSearchProcessor,
-            IBibFileProcessor bibFileProcessor,
-            IQueueManager queueManager,
-            IConfiguration configuration)
+            IBibFileProcessor bibFileProcessor)
         {
             _projectReferencesProcessor = projectReferencesProcessor;
             _searchForArticlesProcessor = searchForArticlesProcessor;
             _documentSearchProcessor = documentSearchProcessor;
             _bibFileProcessor = bibFileProcessor;
-            _queueManager = queueManager;
-            _scrapeDepth = int.Parse(configuration["ScrapeDepth"]);
         }
         public IActionResult Index(int projectId) => View(projectId);
 
@@ -48,9 +39,6 @@ namespace EasyCite.Controllers
         public async Task<JsonResult> AddReference(int projectId, string[] documentIds)
         {
             var results = await _projectReferencesProcessor.AddAsync(projectId, documentIds);
-            
-            foreach (var addedReference in results.Data)
-                _queueManager.QueueArticleScrape(addedReference, _scrapeDepth);
 
             return Json(results);
         }

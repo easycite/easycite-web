@@ -3,12 +3,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Helpers;
+using EasyCiteLib.Interface.Queue;
 using EasyCiteLib.Interface.Search;
 using EasyCiteLib.Models;
 using EasyCiteLib.Models.Search;
 using EasyCiteLib.Repository;
 using EasyCiteLib.Repository.EasyCite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace EasyCiteLib.Implementation.Search
 {
@@ -17,15 +19,21 @@ namespace EasyCiteLib.Implementation.Search
         private readonly IGetDocumentProcessor _getDocumentProcessor;
         private readonly IGenericDataContextAsync<Project> _projectContext;
         private readonly IGetCurrentUserProcessor _getCurrentUserProcessor;
+        private readonly IQueueManager _queueManager;
+        private readonly int _scrapeDepth;
 
         public ProjectReferencesProcessor(
             IGetDocumentProcessor getDocumentProcessor,
             IGenericDataContextAsync<Project> projectContext,
-            IGetCurrentUserProcessor getCurrentUserProcessor)
+            IGetCurrentUserProcessor getCurrentUserProcessor,
+            IQueueManager queueManager,
+            IConfiguration configuration)
         {
             _getDocumentProcessor = getDocumentProcessor;
             _projectContext = projectContext;
             _getCurrentUserProcessor = getCurrentUserProcessor;
+            _queueManager = queueManager;
+            _scrapeDepth = int.Parse(configuration["ScrapeDepth"]);
         }
         public async Task<Results<List<string>>> AddAsync(int projectId, IEnumerable<string> documentIds)
         {
@@ -48,6 +56,9 @@ namespace EasyCiteLib.Implementation.Search
                 }));
 
                 await _projectContext.SaveChangesAsync();
+
+                foreach (var d in documentsToAdd)
+                    _queueManager.QueueArticleScrape(d, _scrapeDepth);
 
                 results.Data = documentsToAdd;
             }
@@ -73,10 +84,11 @@ namespace EasyCiteLib.Implementation.Search
                     return results;
                 }
 
-                var documentIds = projectResults.Data.ProjectReferences
-                    .Select(pr => pr.ReferenceId);
-                
-                var documents = await _getDocumentProcessor.GetDocumentsAsync(documentIds);
+                foreach (ProjectReference pendingReferences in projectResults.Data.ProjectReferences.Where(pr => pr.IsPending))
+                    _queueManager.QueueArticleScrape(pendingReferences.ReferenceId, _scrapeDepth);
+
+                var documents = await _getDocumentProcessor.GetDocumentsAsync(projectResults.Data.ProjectReferences
+                    .Select(pr => pr.ReferenceId));
 
                 results.Data = projectResults.Data.ProjectReferences.Join(documents, l => l.ReferenceId, r => r.Id, (l, r) => new ReferenceVm
                 {
