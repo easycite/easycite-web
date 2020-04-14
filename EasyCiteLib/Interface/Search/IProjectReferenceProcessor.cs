@@ -12,5 +12,7 @@ namespace EasyCiteLib.Interface.Search
         Task<Results<List<ReferenceVm>>> GetAllAsync(int projectId);
 
         Task<Results<List<ReferenceVm>>> GetCompletedScrapesAsync(int projectId, IEnumerable<string> documentIds);
+
+        Task<Results<bool>> HideResultAsync(int projectId, string documentId);
     }
 }

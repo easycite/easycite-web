@@ -10,6 +10,7 @@ using EasyCiteLib.Models.Search;
 using EasyCiteLib.Repository;
 using EasyCiteLib.Repository.EasyCite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 
 namespace EasyCiteLib.Implementation.Search
@@ -139,6 +140,37 @@ namespace EasyCiteLib.Implementation.Search
             return results;
         }
 
+        public async Task<Results<bool>> HideResultAsync(int projectId, string documentId)
+        {
+            var results = new Results<bool>();
+
+            try
+            {
+                var projectResults = await GetProjectIfBelongsToUserAsync(projectId);
+                if (projectResults.HasError)
+                    results.Merge(projectResults);
+                if (results.HasProblem) return results;
+
+                if (projectResults.Data.ProjectHiddenResults.All(ph => ph.ReferenceId != documentId))
+                {
+                    projectResults.Data.ProjectHiddenResults.Add(new ProjectHiddenResult
+                    {
+                        ReferenceId = documentId
+                    });
+
+                    await _projectContext.SaveChangesAsync();
+                }
+
+                results.Data = true;
+            }
+            catch (System.Exception e)
+            {
+                results.AddException(new System.Exception("Failed to hide result.", e));
+            }
+
+            return results;
+        }
+
         public async Task<Results<bool>> RemoveAsync(int projectId, string documentId)
         {
             var results = new Results<bool>();
@@ -179,6 +211,7 @@ namespace EasyCiteLib.Implementation.Search
 
             results.Data = await _projectContext.DataSet
                 .Include(p => p.ProjectReferences)
+                .Include(p => p.ProjectHiddenResults)
                 .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
 
             if (results.Data == null)

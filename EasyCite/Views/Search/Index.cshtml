@@ -25,6 +25,7 @@
             self['SearchByName'] = '@Url.Action("SearchByName")';
             self['UploadAndSearchByBibFile'] = '@Url.Action("UploadAndSearchByBibFile")';
             self['PendingReferencesStatus'] = '@Url.Action("PendingReferencesStatus")';
+            self['HideResult'] = '@Url.Action("HideResult")';
         }();
 
         $(() => {
@@ -113,6 +114,7 @@
                                 <span data-bind="text: AuthorName"></span>&nbsp;&ndash;&nbsp;<span data-bind="text: Conference"></span>
                             </div>
                         </a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mx-2 flex-shrink-0" title="Don't show this article again" data-bind="click: OnHideClick, disable: IsAdded"><i class="fas fa-eye-slash"></i></button>
                         <button type="button" class="btn btn-outline-primary btn-sm px-3 flex-shrink-0" data-bind="click: OnAddClick, disable: IsAdded, text: AddButtonText"></button>
                     </div>
                     <div class="result-details small my-2" data-bind="slideVisible: IsExpanded, html: Abstract" style="display: none;">
