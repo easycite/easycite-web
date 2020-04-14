@@ -6,12 +6,16 @@
 
 @section scripts {
     <script src="~/js/event-handler.js"></script>
+    <script src="~/js/dropdown-option.js"></script>
+    
     <script src="~/js/ko/slideVisible.js"></script>
     <script src="~/js/ko/enterKey.js"></script>
     <script src="~/js/ko/range.js"></script>
     <script src="~/js/ko/dropdown.js"></script>
-    <script src="~/js/dropdown-option.js"></script>
+    <script src="~/js/ko/element.js"></script>
+
     <script src="~/js/search/SearchResultsMvvm.js"></script>
+    <script src="~/js/search/ImportReferencesMvvm.js"></script>
 }
 
 @section koApplyBindings {
@@ -23,11 +27,19 @@
             self['AddReference'] = '@Url.Action("AddReference", "Search")';
             self['RemoveReference'] = '@Url.Action("RemoveReference", "Search")';
             self['Search'] = '@Url.Action("Search", "Search")';
+            self['SearchByName'] = '@Url.Action("SearchByName")';
+            self['UploadAndSearchByBibFile'] = '@Url.Action("UploadAndSearchByBibFile")';
+            self['PendingReferencesStatus'] = '@Url.Action("PendingReferencesStatus")';
+            self['HideResult'] = '@Url.Action("HideResult")';
         }();
 
         $(() => {
             var mvvm = new SearchResultsMvvm(@Json.Serialize(Model));
             ko.applyBindings(mvvm);
+            
+            setInterval(function () {
+                mvvm.CheckPendingReferences();
+            }, 5000);
         });
     </script>
 }
@@ -36,15 +48,15 @@
     <div class="row">
         <div class="col-12 mb-3 order-xl-last col-xl-4 mb-xl-0">
             <div class="d-flex justify-content-between align-items-center bg-dark text-light p-2 px-3">
-                <a href="#" class="text-light"><i class="fas fa-upload"></i></a>
+                <a href="#" class="text-light" data-bind="click: ImportReferencesModal.Show"><i class="fas fa-upload"></i></a>
                 References
                 <a href="#" class="text-light"><i class="fas fa-download"></i></a>
             </div>
             <div class="accordion" data-bind="foreach: References">
                 <div class="card p-2">
-                    <a href="#" class="text-dark text-decoration-none d-flex align-items-center" data-bind="click: ToggleExpanded">
+                    <a href="#" class="text-secondary text-decoration-none d-flex align-items-center" data-bind="click: ToggleExpanded">
                         <span class="px-1"><i class="fas" data-bind="class: ExpandIconClass"></i></span>
-                        <div class="flex-fill" data-bind="text: Title"></div>
+                        <div class="flex-fill" data-bind="text: TitleDisplay, class: PendingTitleClass"></div>
                         <button type="button" class="btn btn-outline-danger btn-sm py-0 flex-shrink-0" data-bind="click: OnRemoveClick, clickBubble: false">
                             Remove
                         </button>
@@ -124,6 +136,7 @@
                                 <span data-bind="text: AuthorName"></span>&nbsp;&ndash;&nbsp;<span data-bind="text: Conference"></span>
                             </div>
                         </a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mx-2 flex-shrink-0" title="Don't show this article again" data-bind="click: OnHideClick, disable: IsAdded"><i class="fas fa-eye-slash"></i></button>
                         <button type="button" class="btn btn-outline-primary btn-sm px-3 flex-shrink-0" data-bind="click: OnAddClick, disable: IsAdded, text: AddButtonText"></button>
                     </div>
                     <div class="result-details small my-2" data-bind="slideVisible: IsExpanded, html: Abstract" style="display: none;">
@@ -140,6 +153,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <template id="dropdown--template">
     <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" 
@@ -166,3 +180,10 @@
         textInput: Value">
     <label>Search Depth: <span data-bind="text: Text"></span></label>
 </template>
+=======
+<div data-bind="template: { name: 'import-references-modal', data: ImportReferencesModal } "></div>
+
+<script type="text/html" id="import-references-modal">
+    @{ await Html.RenderPartialAsync("Import"); }
+</script>
+>>>>>>> master

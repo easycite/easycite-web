@@ -1,16 +1,10 @@
-using System.ComponentModel;
-
-namespace EasyCiteLib.Repository.EasyCite
+﻿namespace EasyCiteLib.Repository.EasyCite
 {
-    public class ProjectReference
+    public class ProjectHiddenResult
     {
         public int Id { get; set; }
-        
         public int ProjectId { get; set; }
         public Project Project { get; set; }
-
         public string ReferenceId { get; set; }
-
-        public bool IsPending { get; set; }
     }
 }

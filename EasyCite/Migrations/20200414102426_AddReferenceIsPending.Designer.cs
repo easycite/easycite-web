@@ -3,14 +3,16 @@ using EasyCiteLib.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EasyCite.Migrations
 {
     [DbContext(typeof(EasyCiteDbContext))]
-    partial class EasyCiteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200414102426_AddReferenceIsPending")]
+    partial class AddReferenceIsPending
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,26 +38,6 @@ namespace EasyCite.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("EasyCiteLib.Repository.EasyCite.ProjectHiddenResult", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReferenceId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("ProjectHiddenResults");
                 });
 
             modelBuilder.Entity("EasyCiteLib.Repository.EasyCite.ProjectReference", b =>
@@ -116,15 +98,6 @@ namespace EasyCite.Migrations
                     b.HasOne("EasyCiteLib.Repository.EasyCite.User", "User")
                         .WithMany("Projects")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EasyCiteLib.Repository.EasyCite.ProjectHiddenResult", b =>
-                {
-                    b.HasOne("EasyCiteLib.Repository.EasyCite.Project", "Project")
-                        .WithMany("ProjectHiddenResults")
-                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

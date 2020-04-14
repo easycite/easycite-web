@@ -71,6 +71,17 @@
     },
     {
       "provider": "cdnjs",
+      "library": "jqueryui@1.12.1",
+      "destination": "wwwroot/lib/jqueryui/",
+      "files": [
+        "jquery-ui.min.js",
+        "jquery-ui.js",
+        "jquery-ui.css",
+        "jquery-ui.min.css"
+      ]
+    },
+    {
+      "provider": "cdnjs",
       "library": "knockout-validation@2.0.4",
       "destination": "wwwroot/lib/knockout-validation/",
       "files": [

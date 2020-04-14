@@ -10,6 +10,7 @@ namespace EasyCiteLib.Repository
         #region Entities
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectReference> ProjectReferences { get; set; }
+        public DbSet<ProjectHiddenResult> ProjectHiddenResults { get; set; }
         public DbSet<User> Users { get; set; }
 
         #endregion
@@ -30,10 +31,19 @@ namespace EasyCiteLib.Repository
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ProjectReference>()
+                .Property(pr => pr.IsPending)
+                .HasDefaultValue(true);
+            
             // Setup cascade deletes
             modelBuilder.Entity<ProjectReference>()
                 .HasOne(pr => pr.Project)
                 .WithMany(p => p.ProjectReferences)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProjectHiddenResult>()
+                .HasOne(ph => ph.Project)
+                .WithMany(p => p.ProjectHiddenResults)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
