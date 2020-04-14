@@ -6,6 +6,6 @@ namespace EasyCiteLib.Interface.Search
 {
     public interface ISearchForArticlesProcessor
     {
-        Task<Results<SearchResultsVm>> SearchAsync(SearchData searchData);
+        Task<Results<SearchResultsVm>> SearchAsync(int projectId, SearchData searchData);
     }
 }

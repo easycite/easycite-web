@@ -6,6 +6,6 @@ namespace EasyCiteLib.Interface.Documents
 {
     public interface IGetDocumentProcessor
     {
-        Task<IList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds);
+        Task<IReadOnlyList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds);
     }
 }

@@ -14,9 +14,9 @@ namespace EasyCiteLib.Implementation.Documents
             _context = context;
         }
 
-        public Task<IList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds)
+        public async Task<IReadOnlyList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds)
         {
-            return _context.GetDocumentsAsync(documentIds);
+            return await _context.GetDocumentsAsync(documentIds);
         }
     }
 }

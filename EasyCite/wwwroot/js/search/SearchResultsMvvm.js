@@ -84,15 +84,18 @@ function SearchResultsMvvm(projectId) {
     self.Search = () => {
         if (self.IsLoading() === true) return;
         self.IsLoading(true);
-
-        var searchData = {
-            PageNumber: self.PageNumber(),
-            ItemsPerPage: self.ItemsPerPage(),
-            SearchByIds: self.References().map(element => element.Id()),
-            SearchTags: self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s)
+        
+        var data = {
+            projectId: self.ProjectId(),
+            searchData: {
+                PageNumber: self.PageNumber(),
+                ItemsPerPage: self.ItemsPerPage(),
+                SearchByIds: self.References().map(element => element.Id()),
+                SearchTags: self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s),
+                ForceNoCache: self.IsOutOfSync()
+            }
         };
-
-        return $.post(self.SaveUrl(), searchData).then(results => {
+        return $.post(self.SaveUrl(), data).then(results => {
             var data = results.Data;
 
             self.NumberOfPages(data.NumberOfPages);

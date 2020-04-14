@@ -15,7 +15,7 @@ namespace EasyCiteLib.Implementation.Documents
         {
             _getRandomDataProcessor = getRandomDataProcessor;
         }
-        public async Task<IList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds)
+        public async Task<IReadOnlyList<Document>> GetDocumentsAsync(IEnumerable<string> documentIds)
         {
             return documentIds.Select(documentId => new Document
             {

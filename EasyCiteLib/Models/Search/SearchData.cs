@@ -8,5 +8,7 @@ namespace EasyCiteLib.Models.Search
         public int ItemsPerPage { get; set; }
         public List<string> SearchByIds { get; set; } = new List<string>();
         public List<string> SearchTags { get; set; } = new List<string>();
+        public SearchSortType SearchSortType { get; set; }
+        public bool ForceNoCache { get; set; }
     }
 }
