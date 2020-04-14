@@ -25,7 +25,13 @@ namespace EasyCiteLib.Implementation.Search
         }
         public async Task<Results<SearchVm>> LoadAsync(int projectId)
         {
-            var results = new Results<SearchVm>();
+            var results = new Results<SearchVm>
+            {
+                Data =
+                {
+                    ProjectId = projectId
+                }
+            };
 
             var userId = await _getCurrentUserProcessor.GetUserIdAsync();
             var project = await _projectDataContext.DataSet
