@@ -14,7 +14,7 @@ namespace EasyCiteLib.Implementation.Search
         {
             _getRandomDataProcessor = getRandomDataProcessor;
         }
-        public async Task<Results<SearchResultsVm>> SearchAsync(SearchData searchData)
+        public async Task<Results<SearchResultsVm>> SearchAsync(int projectId, SearchData searchData)
         {
             var results = new Results<SearchResultsVm>
             {
