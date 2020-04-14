@@ -26,6 +26,9 @@ function SearchResultsMvvm(results) {
     }
 
     self.SearchDepth = ko.observable(results.Data.DefaultSearchDepth);
+    self.SearchDepth.subscribe(() => {
+       self.IsOutOfSync(true); 
+    });
     self.SearchDepthConfig = ko.observable({
         max: self.SearchDepthOptions().reduce(
             (acc, cur) => Math.max(acc, cur.Value())
@@ -39,6 +42,9 @@ function SearchResultsMvvm(results) {
         self.SearchTypes.push(new DropdownOption(option.Value, option.Text));
     }
     self.SelectedSearchType = ko.observable(results.Data.DefaultSortOption);
+    self.SelectedSearchType.subscribe(() => {
+        self.IsOutOfSync(true);
+    });
 
     // Search Tags
     self.SearchTags = ko.observable('');
