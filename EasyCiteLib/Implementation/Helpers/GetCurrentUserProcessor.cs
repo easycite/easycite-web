@@ -50,7 +50,7 @@ namespace EasyCiteLib.Implementation.Helpers
             if(parsed == false)
                 throw new FormatException($"'{userIdValue}' could not be parsed to an int");
 
-            if(await _userDataContext.DataSet.AnyAsync(u => u.Id != userId))
+            if(await _userDataContext.DataSet.AnyAsync(u => u.Id == userId) == false)
                 throw new SecurityException("That userId could not be found");
 
             return userId;

@@ -51,6 +51,12 @@ namespace EasyCiteLib.Repository
                     Name = se.ToString()
                 })
             );
+
+            // Setup cascade deletes
+            modelBuilder.Entity<ProjectReference>()
+                .HasOne(pr => pr.Project)
+                .WithMany(p => p.ProjectReferences)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

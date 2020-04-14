@@ -3,13 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using EasyCiteLib.Interface.Account;
-using System.Security.Claims;
-using System.Linq;
-using EasyCiteLib.Models.Account;
 using EasyCiteLib.Repository;
 using EasyCiteLib.Repository.EasyCite;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 namespace EasyCite.Controllers
 {

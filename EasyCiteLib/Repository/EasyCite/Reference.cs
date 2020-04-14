@@ -11,7 +11,7 @@ namespace EasyCiteLib.Repository.EasyCite
         public string PublicationTitle { get; set; }
         public DateTime PublicationDate { get; set; }
 
-        public ICollection<ProjectReference> ProjectReferences { get; set; } = new HashSet<ProjectReference>();
-        public ICollection<ReferenceSource> Sources { get; set; } = new HashSet<ReferenceSource>();
+        public List<ProjectReference> ProjectReferences { get; set; } = new List<ProjectReference>();
+        public List<ReferenceSource> Sources { get; set; } = new List<ReferenceSource>();
     }
 }

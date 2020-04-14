@@ -10,6 +10,6 @@ namespace EasyCiteLib.Repository.EasyCite
     {
         public SourceEnum Id { get; set; }
         public string Name { get; set; }
-        public ICollection<ReferenceSource> ReferenceSources { get; set; } = new HashSet<ReferenceSource>();
+        public List<ReferenceSource> ReferenceSources { get; set; } = new List<ReferenceSource>();
     }
 }

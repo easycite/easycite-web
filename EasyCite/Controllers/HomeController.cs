@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using EasyCite.Models;
 using EasyCiteLib.Repository;
 using Microsoft.AspNetCore.Authorization;
-using EasyCiteLib.Interface.Helpers;
 
 namespace EasyCite.Controllers
 {

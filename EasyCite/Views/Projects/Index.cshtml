@@ -1,0 +1,90 @@
+@section scripts {
+    <script src="~/lib/knockout-validation/knockout.validation.min.js"></script>
+    <script src="~/js/event-handler.js"></script>
+    <script src="~/js/projects/ProjectsMvvm.js"></script>
+}
+
+@section koApplyBindings {
+    <script>
+        var ApiUrls = new function() {
+            var self = this;
+
+            self['Load'] = '@Url.Action("Load", "Projects")';
+            self['Save'] = '@Url.Action("Save", "Projects")';
+            self['Delete'] = '@Url.Action("Delete", "Projects")';
+            self['Search'] = '@Url.Action("Index", "Search")';
+        }();
+
+        $(() => {
+            // Knockout validation configuration
+            ko.validation.init({
+                messagesOnModified: false,
+                decorateElementOnModified: false,
+                decorateInputElement: true,
+                errorElementClass: 'is-invalid',
+                messageTemplate: 'error-message--template'
+            });
+
+            var mvvm = new ProjectsMvvm();
+            ko.applyBindings(mvvm);
+        });
+    </script>
+}
+
+<script type="text/html" id="error-message--template">
+    <div data-bind="text: field.error" class="invalid-feedback"></div>
+</script>
+
+<style>
+    td {
+        white-space: nowrap;
+    }
+ 
+    table {
+        table-layout: fixed;
+    }
+</style>
+
+<div class="container">
+    <div class="d-flex mb-5 justify-content-between">
+        <h1>Your Projects</h1>
+        <button type="button" data-bind="click: OnNewProjectClick" class="btn btn-outline-primary align-self-center">
+            <i class="fas fa-plus"></i>
+            New Project
+        </button>
+    </div>
+    <table class="table" data-bind="visible: TableIsVisible" style="display: none;">
+        <thead class="thead-light">
+            <tr>
+                <th>Name</th>
+                <th># of references</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: Projects">
+            <tr data-bind="disable: IsLoading">
+                <th scope="row" class="form-group">
+                    <!-- ko ifnot: IsEditing -->
+                    <a data-bind="text: Name, attr: { href: Url }"></a>
+                    <!-- /ko -->
+
+                    <!-- ko if: IsEditing -->
+                    <input type="text" data-bind="textInput: EditingName" class="form-control">
+                    <!-- /ko -->
+                </th>
+                <td data-bind="text: NumberOfReferences"></td>
+                <td class="text-right">
+                    <!-- ko ifnot: IsEditing -->
+                    <button type="button" data-bind="click: OnEditClick, clickBubble: false" class="btn btn-primary">Edit</button>
+                    <button type="button" data-bind="click: OnDeleteClick, clickBubble: false" class="btn btn-outline-danger">Delete</button>
+                    <!-- /ko -->
+                    
+                    <!-- ko if: IsEditing -->
+                    <button type="button" data-bind="click: OnSaveClick, clickBubble: false, disable: IsSaveDisabled" class="btn btn-primary">Save</button>
+                    <button type="button" data-bind="click: OnCancelClick, clickBubble: false, disable: IsLoading" class="btn btn-outline-danger">Cancel</button>
+                    <!-- /ko -->
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
