@@ -1,7 +1,10 @@
 function ComponentDropdownVm(params) {
     var self = this;
     
-    self.ButtonText = ko.observable(params.text);
+    self.ButtonText = ko.pureComputed(function () {
+        const selectedOption = self.Options().find(o => o.OptionValue() === self.Value());
+        return selectedOption ? selectedOption.OptionText() : params.text;
+    });
     self.Value = params.value;
     self.Options = ko.observableArray([]);
     self.OptionsText = ko.observable(params.optionsText);
