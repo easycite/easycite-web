@@ -27,9 +27,11 @@ namespace EasyCiteLib.Implementation.Search
             _projectContext = projectContext;
             _getCurrentUserProcessor = getCurrentUserProcessor;
         }
-        public async Task<Results<bool>> AddAsync(int projectId, string documentId)
+        public async Task<Results<List<string>>> AddAsync(int projectId, IEnumerable<string> documentIds)
         {
-            var results = new Results<bool>();
+            var documentIdList = documentIds.ToList();
+            
+            var results = new Results<List<string>>();
 
             try
             {
@@ -38,16 +40,16 @@ namespace EasyCiteLib.Implementation.Search
                     results.Merge(projectResults);
                 if (results.HasProblem) return results;
 
-                if (projectResults.Data.ProjectReferences.Any(pr => pr.ReferenceId == documentId))
-                    results.AddError("Your project already contains that reference");
-                if (results.HasProblem) return results;
+                List<string> documentsToAdd = documentIdList.Except(projectResults.Data.ProjectReferences.Select(pr => pr.ReferenceId)).ToList();
 
-                projectResults.Data.ProjectReferences.Add(new ProjectReference
+                projectResults.Data.ProjectReferences.AddRange(documentsToAdd.Select(d => new ProjectReference
                 {
-                    ReferenceId = documentId
-                });
+                    ReferenceId = d
+                }));
 
                 await _projectContext.SaveChangesAsync();
+
+                results.Data = documentsToAdd;
             }
             catch (System.Exception e)
             {
@@ -73,13 +75,15 @@ namespace EasyCiteLib.Implementation.Search
 
                 var documentIds = projectResults.Data.ProjectReferences
                     .Select(pr => pr.ReferenceId);
+                
                 var documents = await _getDocumentProcessor.GetDocumentsAsync(documentIds);
 
-                results.Data = documents.Select(d => new ReferenceVm
+                results.Data = projectResults.Data.ProjectReferences.Join(documents, l => l.ReferenceId, r => r.Id, (l, r) => new ReferenceVm
                 {
-                    Id = d.Id,
-                    Title = d.Title,
-                    Abstract = d.Abstract
+                    Id = l.ReferenceId,
+                    Title = r.Title,
+                    Abstract = r.Abstract,
+                    IsPending = l.IsPending
                 }).ToList();
             }
             catch (System.Exception e)
@@ -89,6 +93,40 @@ namespace EasyCiteLib.Implementation.Search
 
             return results;
         }
+
+        public async Task<Results<List<ReferenceVm>>> GetCompletedScrapesAsync(int projectId, IEnumerable<string> documentIds)
+        {
+            var results = new Results<List<ReferenceVm>>();
+
+            try
+            {
+                var projectResults = await GetProjectIfBelongsToUserAsync(projectId);
+
+                if (projectResults.HasError)
+                {
+                    results.Merge(projectResults);
+                    return results;
+                }
+
+                var completedIds = documentIds.Where(d => projectResults.Data.ProjectReferences.Any(pr => pr.ReferenceId == d && !pr.IsPending));
+                var documents = await _getDocumentProcessor.GetDocumentsAsync(completedIds);
+                
+                results.Data = documents.Select(d => new ReferenceVm
+                {
+                    Id = d.Id,
+                    Title = d.Title,
+                    Abstract = d.Abstract,
+                    IsPending = false
+                }).ToList();
+            }
+            catch (System.Exception e)
+            {
+                results.AddException(new System.Exception("Failed to check for completed scrapes.", e));
+            }
+
+            return results;
+        }
+
         public async Task<Results<bool>> RemoveAsync(int projectId, string documentId)
         {
             var results = new Results<bool>();
@@ -110,6 +148,8 @@ namespace EasyCiteLib.Implementation.Search
                 projectResults.Data.ProjectReferences.Remove(toRemove);
 
                 await _projectContext.SaveChangesAsync();
+
+                results.Data = true;
             }
             catch (System.Exception e)
             {

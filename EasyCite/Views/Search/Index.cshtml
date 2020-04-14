@@ -24,12 +24,16 @@
             self['Search'] = '@Url.Action("Search", "Search")';
             self['SearchByName'] = '@Url.Action("SearchByName")';
             self['UploadAndSearchByBibFile'] = '@Url.Action("UploadAndSearchByBibFile")';
-            self['ImportReferences'] = '@Url.Action("ImportReferences")';
+            self['PendingReferencesStatus'] = '@Url.Action("PendingReferencesStatus")';
         }();
 
         $(() => {
             var mvvm = new SearchResultsMvvm(@Model);
             ko.applyBindings(mvvm);
+            
+            setInterval(function () {
+                mvvm.CheckPendingReferences();
+            }, 5000);
         });
     </script>
 }
@@ -44,9 +48,9 @@
             </div>
             <div class="accordion" data-bind="foreach: References">
                 <div class="card p-2">
-                    <a href="#" class="text-dark text-decoration-none d-flex align-items-center" data-bind="click: ToggleExpanded">
+                    <a href="#" class="text-secondary text-decoration-none d-flex align-items-center" data-bind="click: ToggleExpanded">
                         <span class="px-1"><i class="fas" data-bind="class: ExpandIconClass"></i></span>
-                        <div class="flex-fill" data-bind="text: Title"></div>
+                        <div class="flex-fill" data-bind="text: TitleDisplay, class: PendingTitleClass"></div>
                         <button type="button" class="btn btn-outline-danger btn-sm py-0 flex-shrink-0" data-bind="click: OnRemoveClick, clickBubble: false">
                             Remove
                         </button>

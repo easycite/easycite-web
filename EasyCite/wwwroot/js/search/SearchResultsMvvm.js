@@ -16,7 +16,7 @@ function SearchResultsMvvm(projectId) {
         self.IsOutOfSync(true);
     });
 
-    self.IsOutOfSync = ko.observable(false);
+    self.IsOutOfSync = ko.observable(true);
 
     self.PreviousIsDisabled = ko.pureComputed(() => self.PageNumber() === 0);
     self.NextIsDisabled = ko.pureComputed(() => self.PageNumberDisplay() === self.NumberOfPages());
@@ -26,7 +26,7 @@ function SearchResultsMvvm(projectId) {
     self.SaveUrl = ko.observable(ApiUrls['Search']);
     self.AddReferenceUrl = ko.observable(ApiUrls['AddReference']);
     self.RemoveReferenceUrl = ko.observable(ApiUrls['RemoveReference']);
-    self.ImportReferencesUrl = ko.observable(ApiUrls['ImportReferences']);
+    self.PendingReferencesStatusUrl = ko.observable(ApiUrls['PendingReferencesStatus']);
 
     // ---------- Functions ---------- //
     self.LoadReferences = function (references) {        
@@ -42,12 +42,7 @@ function SearchResultsMvvm(projectId) {
         if (self.IsLoading() === true) return;
         self.IsLoading(true);
 
-        $.post(self.AddReferenceUrl(), {
-            projectId: self.ProjectId(),
-            documentId: result.Id(),
-        }).done(results => {
-            self.LoadReferences(results.Data);
-        }).always(() => {
+        self.AddReferences([ result ]).always(() => {
             self.IsOutOfSync(true);
             self.IsLoading(false);
         });
@@ -61,7 +56,9 @@ function SearchResultsMvvm(projectId) {
             projectId: self.ProjectId(),
             documentId: reference.Id(),
         }).done(results => {
-            self.LoadReferences(results.Data);
+            if (results.Data === true) {
+                self.References.remove(reference);
+            }
         }).always(() => {
             self.IsOutOfSync(true);
             self.IsLoading(false);
@@ -90,7 +87,7 @@ function SearchResultsMvvm(projectId) {
             searchData: {
                 PageNumber: self.PageNumber(),
                 ItemsPerPage: self.ItemsPerPage(),
-                SearchByIds: self.References().map(element => element.Id()),
+                SearchByIds: self.References().filter(r => !r.IsPending()).map(element => element.Id()),
                 SearchTags: self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s),
                 ForceNoCache: self.IsOutOfSync()
             }
@@ -106,15 +103,65 @@ function SearchResultsMvvm(projectId) {
                 result.OnAddEvent.AddListener(self, self.OnReferenceAddCallback);
                 self.SearchResults.push(result);
             });
+            self.IsOutOfSync(false);
         }).always(() => {
             self.IsLoading(false);
         });
+    };
+    
+    self.AddReferences = references => {
+        return $.post(self.AddReferenceUrl(), {
+            projectId: self.ProjectId(),
+            documentIds: [ references.map(r => r.Id()) ]
+        }).then(results => {
+            const imported = results.Data;
+            
+            if (imported.length) {
+                references.filter(r => imported.includes(r.Id())).map(r => new ReferenceVm({
+                    Id: r.Id(),
+                    Title: r.Title(),
+                    Abstract: r.Abstract(),
+                    IsPending: true
+                })).forEach(function (newRef) {
+                    newRef.OnRemoveEvent.AddListener(self, self.OnReferenceRemoveCallback);
+                    self.References.push(newRef);
+                });
+            }
+        });
+    };
+
+    let pendingReferencesDeferred;
+    self.CheckPendingReferences = () => {
+        if (pendingReferencesDeferred && pendingReferencesDeferred.state() === 'pending')
+            return pendingReferencesDeferred;
+        
+        const pendingReferences = self.References().filter(r => r.IsPending());
+        
+        if (!pendingReferences.length)
+            return $.Deferred().resolve().promise();
+
+        const ids = pendingReferences.map(r => r.Id());
+        pendingReferencesDeferred = $.post(self.PendingReferencesStatusUrl(), {
+            projectId: self.ProjectId(),
+            documentIds: ids
+        }).then(function (results) {
+            const completed = results.Data.map(r => new ReferenceVm(r));
+
+            completed.forEach(function (newRef) {
+                const matchingOldRef = pendingReferences.find(p => p.Id() === newRef.Id());
+                if (matchingOldRef) {
+                    newRef.OnRemoveEvent.AddListener(self, self.OnReferenceRemoveCallback);
+                    self.References.replace(matchingOldRef, newRef);
+                }
+            });
+        });
+        
+        return pendingReferencesDeferred;
     };
 
     self.SyncReferences = () => {
         self.Search().done(() => {
             self.PageNumber(0);
-            self.IsOutOfSync(false);
         });
     };
 
@@ -135,12 +182,8 @@ function SearchResultsMvvm(projectId) {
     };
 
     self.ImportReferencesModal = new ImportReferencesMvvm();
-    self.ImportReferencesModal.OnSave.AddListener(self, function (importIds) {
-        $.post(self.ImportReferencesUrl(), {
-            projectId: self.ProjectId(),
-            documentIds: importIds
-        }).done(function () {
-            self.Load();
+    self.ImportReferencesModal.OnSave.AddListener(self, function (importReferences) {
+        self.AddReferences(importReferences).done(function () {
             self.IsOutOfSync(true);
         });
     });
@@ -159,9 +202,26 @@ function ReferenceVm(reference) {
     self.Id = ko.observable(reference.Id);
     self.Title = ko.observable(reference.Title);
     self.Abstract = ko.observable(reference.Abstract);
+    self.IsPending = ko.observable(reference.IsPending);
+    
+    self.TitleDisplay = ko.pureComputed(() => {
+        if (!self.Title() && self.IsPending())
+            return 'Importing reference...';
+        if (self.IsPending())
+            return self.Title() + ' (pending)';
+        
+        return self.Title();
+    });
+    self.PendingTitleClass = ko.pureComputed(() => {
+        return self.IsPending() ? 'font-italic text-muted' : '';
+    });
     
     self.IsExpanded = ko.observable(false);
-    self.ExpandIconClass = ko.pureComputed(() => self.IsExpanded() ? 'fa-chevron-up' : 'fa-chevron-down');
+    self.ExpandIconClass = ko.pureComputed(() => {
+        if (!self.Abstract())
+            return 'fa-chevron-up invisible';
+        return self.IsExpanded() ? 'fa-chevron-up' : 'fa-chevron-down';
+    });
 
     // ----------- Events ------------ //
     self.OnRemoveEvent = new EventHandler(self);

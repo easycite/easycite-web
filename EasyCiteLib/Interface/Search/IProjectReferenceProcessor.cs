@@ -7,8 +7,10 @@ namespace EasyCiteLib.Interface.Search
 {
     public interface IProjectReferencesProcessor
     {
-        Task<Results<bool>> AddAsync(int projectId, string documentId);
+        Task<Results<List<string>>> AddAsync(int projectId, IEnumerable<string> documentIds);
         Task<Results<bool>> RemoveAsync(int projectId, string documentId);
         Task<Results<List<ReferenceVm>>> GetAllAsync(int projectId);
+
+        Task<Results<List<ReferenceVm>>> GetCompletedScrapesAsync(int projectId, IEnumerable<string> documentIds);
     }
 }

@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Queue;
+using EasyCiteLib.Repository;
+using EasyCiteLib.Repository.EasyCite;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -18,6 +22,7 @@ namespace EasyCiteLib.Implementation.Queue
         private const string _completeQueueName = "scrape-complete";
 
         private readonly ILogger<QueueManager> _logger;
+        private readonly IGenericDataContextAsync<ProjectReference> _projectReferenceContext;
 
         private readonly ISenderClient _senderClient;
         private readonly IReceiverClient _receiverClient;
@@ -26,10 +31,11 @@ namespace EasyCiteLib.Implementation.Queue
 
         private readonly ConcurrentDictionary<string, Task> _pendingScrapes = new ConcurrentDictionary<string, Task>();
 
-        public QueueManager(IConfiguration configuration, ILogger<QueueManager> logger)
+        public QueueManager(IConfiguration configuration, ILogger<QueueManager> logger, IGenericDataContextAsync<ProjectReference> projectReferenceContext)
         {
             string serviceBusConnectionString = configuration["ServiceBusConnectionString"];
             _logger = logger;
+            _projectReferenceContext = projectReferenceContext;
 
             _senderClient = new MessageSender(serviceBusConnectionString, _scrapeQueueName);
             _receiverClient = new MessageReceiver(serviceBusConnectionString, _completeQueueName);
@@ -67,6 +73,9 @@ namespace EasyCiteLib.Implementation.Queue
             {
                 _logger.LogInformation($"Sending scrape message for document {documentId}");
                 await _requestSender.RequestAsync(message, rsp => Task.FromResult(true), CancellationToken.None);
+
+                await MarkReferencesNotPendingAsync(documentId);
+                
                 _logger.LogInformation($"Finished scrape for document {documentId}");
             }
             catch (Exception e)
@@ -77,6 +86,14 @@ namespace EasyCiteLib.Implementation.Queue
             {
                 _pendingScrapes.TryRemove(documentId, out _);
             }
+        }
+
+        async Task MarkReferencesNotPendingAsync(string referenceId)
+        {
+            await foreach (var pr in _projectReferenceContext.DataSet.Where(pr => pr.ReferenceId == referenceId).AsAsyncEnumerable())
+                pr.IsPending = false;
+
+            await _projectReferenceContext.SaveChangesAsync();
         }
 
         public async ValueTask DisposeAsync()

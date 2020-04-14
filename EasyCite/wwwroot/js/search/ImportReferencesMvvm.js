@@ -59,7 +59,7 @@
     };
     
     self.Import = () => {
-        const importIds = self.SearchResults().filter(r => r.IsSelected()).map(r => r.Id());
+        const importIds = self.SearchResults().filter(r => r.IsSelected());
         
         self.OnSave.NotifyListeners(importIds);
         $(self.ModalElement()).modal('hide');
@@ -77,6 +77,7 @@ function SearchResultVm(result) {
     
     self.Id = ko.observable(result.Id);
     self.Title = ko.observable(result.Title);
+    self.Abstract = ko.observable('');
     
     self.IsSelected = ko.observable(false);
     self.SelectedClass = ko.pureComputed(function () {

@@ -2,13 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using EasyCiteLib.Implementation.Helpers;
 using EasyCiteLib.Interface.Documents;
-using Microsoft.AspNetCore.Mvc;
+using EasyCiteLib.Interface.Queue;
 using EasyCiteLib.Interface.Search;
-using EasyCiteLib.Models;
 using EasyCiteLib.Models.Search;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace EasyCite.Controllers
 {
@@ -18,17 +18,24 @@ namespace EasyCite.Controllers
         private readonly ISearchForArticlesProcessor _searchForArticlesProcessor;
         private readonly IDocumentSearchProcessor _documentSearchProcessor;
         private readonly IBibFileProcessor _bibFileProcessor;
+        private readonly IQueueManager _queueManager;
+
+        private readonly int _scrapeDepth;
 
         public SearchController(
             IProjectReferencesProcessor projectReferencesProcessor,
             ISearchForArticlesProcessor searchForArticlesProcessor,
             IDocumentSearchProcessor documentSearchProcessor,
-            IBibFileProcessor bibFileProcessor)
+            IBibFileProcessor bibFileProcessor,
+            IQueueManager queueManager,
+            IConfiguration configuration)
         {
             _projectReferencesProcessor = projectReferencesProcessor;
             _searchForArticlesProcessor = searchForArticlesProcessor;
             _documentSearchProcessor = documentSearchProcessor;
             _bibFileProcessor = bibFileProcessor;
+            _queueManager = queueManager;
+            _scrapeDepth = int.Parse(configuration["ScrapeDepth"]);
         }
         public IActionResult Index(int projectId) => View(projectId);
 
@@ -38,12 +45,12 @@ namespace EasyCite.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> AddReference(int projectId, string documentId)
+        public async Task<JsonResult> AddReference(int projectId, string[] documentIds)
         {
-            var addResults = await _projectReferencesProcessor.AddAsync(projectId, documentId);
-            var results = await _projectReferencesProcessor.GetAllAsync(projectId);
+            var results = await _projectReferencesProcessor.AddAsync(projectId, documentIds);
             
-            results.Merge(addResults);
+            foreach (var addedReference in results.Data)
+                _queueManager.QueueArticleScrape(addedReference, _scrapeDepth);
 
             return Json(results);
         }
@@ -51,28 +58,16 @@ namespace EasyCite.Controllers
         [HttpPost]
         public async Task<JsonResult> RemoveReference(int projectId, string documentId)
         {
-            var removeResults = await _projectReferencesProcessor.RemoveAsync(projectId, documentId);
-            var results = await _projectReferencesProcessor.GetAllAsync(projectId);
-            
-            results.Merge(removeResults);
+            var results = await _projectReferencesProcessor.RemoveAsync(projectId, documentId);
 
             return Json(results);
         }
 
-        public async Task<JsonResult> ImportReferences(int projectId, string[] documentIds)
+        public async Task<JsonResult> PendingReferencesStatus(int projectId, string[] documentIds)
         {
-            // TODO: check if exists in DB and send message if necessary
-            IEnumerable<Task<Results<bool>>> tasks = documentIds.Select(d => _projectReferencesProcessor.AddAsync(projectId, d));
-            Results<bool>[] allResults = await Task.WhenAll(tasks);
+            var results = await _projectReferencesProcessor.GetCompletedScrapesAsync(projectId, documentIds);
 
-            Results<bool> totalResult = allResults.Aggregate((aggregateResult, nextResult) =>
-            {
-                aggregateResult.Data = aggregateResult.Data || nextResult.Data;
-                aggregateResult.Merge(nextResult);
-                return aggregateResult;
-            });
-
-            return Json(totalResult);
+            return Json(results);
         }
 
         [HttpPost]
