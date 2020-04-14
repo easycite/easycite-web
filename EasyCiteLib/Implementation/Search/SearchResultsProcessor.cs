@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Search;
@@ -18,7 +19,15 @@ namespace EasyCiteLib.Implementation.Search
 
         public async Task<IReadOnlyList<Document>> SearchAsync(SearchData searchData)
         {
-            IList<string> resultIds = await _documentContext.SearchDocumentsAsync(searchData.SearchByIds, searchData.SearchSortType);
+            int depth = searchData.SearchDepth switch
+            {
+                SearchDepth.Low => 1,
+                SearchDepth.Medium => 2,
+                SearchDepth.High => 3,
+                _ => throw new ArgumentOutOfRangeException(nameof(searchData.SearchDepth), searchData.SearchDepth, null)
+            };
+            
+            IList<string> resultIds = await _documentContext.SearchDocumentsAsync(searchData.SearchByIds, searchData.SearchSortType, depth);
 
             List<Document> documents = await _documentContext.GetDocumentsAsync(resultIds);
 

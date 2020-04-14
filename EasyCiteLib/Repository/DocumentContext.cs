@@ -77,8 +77,13 @@ namespace EasyCiteLib.Repository
             return documents;
         }
 
-        public async Task<List<string>> SearchDocumentsAsync(IEnumerable<string> documentIds, SearchSortType sortType)
+        public async Task<List<string>> SearchDocumentsAsync(IEnumerable<string> documentIds, SearchSortType sortType, int depth)
         {
+            if (depth < 1)
+                depth = 1;
+            if (depth > 3)
+                depth = 3;
+            
             var documentIdList = documentIds.ToList();
 
             using var client = _graphClientFactory.Create();
@@ -120,7 +125,7 @@ namespace EasyCiteLib.Repository
                 return q.Unwind(documentIdList, "docId")
                     .Match("(doc:Document)")
                     .Where("doc.id = docId")
-                    .Match($"(doc){dirFront}[:CITES*1..{_resultsSearchDepth}]{dirBack}(ref:Document)")
+                    .Match($"(doc){dirFront}[:CITES*1..{depth}]{dirBack}(ref:Document)")
                     .Where("ref.visited = true")
                     .Match("(a:Author)-[:AUTHORED]->(ref)")
                     .Return(@ref => new DocumentResult

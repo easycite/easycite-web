@@ -1,4 +1,4 @@
-﻿@model int
+﻿@model EasyCiteLib.Models.Results<EasyCiteLib.Models.Search.SearchVm>
 
 @{
     ViewData["Title"] = "Search";
@@ -6,9 +6,14 @@
 
 @section scripts {
     <script src="~/js/event-handler.js"></script>
+    <script src="~/js/dropdown-option.js"></script>
+    
     <script src="~/js/ko/slideVisible.js"></script>
     <script src="~/js/ko/enterKey.js"></script>
+    <script src="~/js/ko/range.js"></script>
+    <script src="~/js/ko/dropdown.js"></script>
     <script src="~/js/ko/element.js"></script>
+
     <script src="~/js/search/SearchResultsMvvm.js"></script>
     <script src="~/js/search/ImportReferencesMvvm.js"></script>
 }
@@ -29,7 +34,7 @@
         }();
 
         $(() => {
-            var mvvm = new SearchResultsMvvm(@Model);
+            var mvvm = new SearchResultsMvvm(@Json.Serialize(Model));
             ko.applyBindings(mvvm);
             
             setInterval(function () {
@@ -90,13 +95,30 @@
         </div>*@
         <div class="col-12 col-xl-8 order-xl-first">
             <div class="row">
-                <h1 class="col-5">Results</h1>
-                <div class="col-7 pt-1">
-                    <div class="input-group">
-                        <div class="input-group-prepend text-dark">
-                            <div class="input-group-text"><i class="fas fa-search"></i></div>
+                <h1 class="col-12 text-center">Results</h1>
+                <div class="col-12 d-flex justify-content-between">
+                    <div class="">
+                        <dropdown params="
+                            text: 'Sort Options', 
+                            value: SelectedSearchType,
+                            options: SearchTypes,
+                            optionsText: 'Text',
+                            optionsValue: 'Value'"></dropdown>
+                    </div>
+                    <div class="px-5 flex-fill text-center">
+                        <range params="
+                            config: SearchDepthConfig,
+                            options: SearchDepthOptions,
+                            value: SearchDepth
+                        "></range>
+                    </div>
+                    <div class="pt-1">
+                        <div class="input-group">
+                            <div class="input-group-prepend text-dark">
+                                <div class="input-group-text"><i class="fas fa-search"></i></div>
+                            </div>
+                            <input type="text" class="form-control" placeholder="Search" data-bind="textInput: SearchTags, enterKey: SyncReferences" />
                         </div>
-                        <input type="text" class="form-control" placeholder="Search" data-bind="textInput: SearchTags, enterKey: SyncReferences" />
                     </div>
                 </div>
             </div>
@@ -130,6 +152,34 @@
         </div>
     </div>
 </div>
+
+@* Templates *@
+<template id="dropdown--template">
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" 
+            type="button" 
+            id="dropdownMenuButton" 
+            data-toggle="dropdown" 
+            aria-haspopup="true" 
+            aria-expanded="false"
+            data-bind="text: ButtonText">
+        </button>
+        <div class="dropdown-menu" 
+            aria-labelledby="dropdownMenuButton"
+            data-bind="foreach: Options">
+            <a class="dropdown-item" 
+                href="#"
+                data-bind="text: OptionText, click: OnClick"></a>
+        </div>
+    </div>
+</template>
+
+<template id="range--template">
+    <input type="range" class="custom-range" data-bind="
+        attr: { min: Min, max: Max, step: Step },
+        textInput: Value">
+    <label>Search Depth: <span data-bind="text: Text"></span></label>
+</template>
 
 <div data-bind="template: { name: 'import-references-modal', data: ImportReferencesModal } "></div>
 

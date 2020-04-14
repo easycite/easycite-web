@@ -10,5 +10,12 @@ namespace EasyCiteLib.Models.Search
         public List<string> SearchTags { get; set; } = new List<string>();
         public SearchSortType SearchSortType { get; set; }
         public bool ForceNoCache { get; set; }
+        public SearchDepth SearchDepth { get; set; }
+    }
+    public enum SearchDepth
+    {
+        Low = 0,
+        Medium = 1,
+        High = 2
     }
 }
