@@ -68,7 +68,7 @@ namespace EasyCite.Controllers
             Results<bool> totalResult = allResults.Aggregate((aggregateResult, nextResult) =>
             {
                 aggregateResult.Data = aggregateResult.Data || nextResult.Data;
-                aggregateResult.MergeExceptions(nextResult);
+                aggregateResult.Merge(nextResult);
                 return aggregateResult;
             });
 
