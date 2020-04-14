@@ -27,6 +27,7 @@ function SearchResultsMvvm(projectId) {
     self.AddReferenceUrl = ko.observable(ApiUrls['AddReference']);
     self.RemoveReferenceUrl = ko.observable(ApiUrls['RemoveReference']);
     self.PendingReferencesStatusUrl = ko.observable(ApiUrls['PendingReferencesStatus']);
+    self.HideResultUrl = ko.observable(ApiUrls['HideResult']);
 
     // ---------- Functions ---------- //
     self.LoadReferences = function (references) {        
@@ -101,6 +102,7 @@ function SearchResultsMvvm(projectId) {
 
             data.Results.map(d => new ResultVm(d)).forEach(function (result) {
                 result.OnAddEvent.AddListener(self, self.OnReferenceAddCallback);
+                result.OnHideEvent.AddListener(self, self.OnHideResultCallback);
                 self.SearchResults.push(result);
             });
             self.IsOutOfSync(false);
@@ -187,6 +189,18 @@ function SearchResultsMvvm(projectId) {
             self.IsOutOfSync(true);
         });
     });
+    
+    self.OnHideResultCallback = result => {
+        return $.post(self.HideResultUrl(), {
+            projectId: self.ProjectId(),
+            documentId: result.Id()
+        }).then(function (results) {
+            if (results.Data === true) {
+                self.SearchResults.remove(result);
+                return self.Search();
+            }
+        });
+    };
 
     self.Load().then(() => {
         return self.Search();
@@ -255,11 +269,16 @@ function ResultVm(result) {
 
     // ----------- Events ------------ //
     self.OnAddEvent = new EventHandler(self);
+    self.OnHideEvent = new EventHandler(self);
 
     // ---------- Functions ---------- //
     self.OnAddClick = () => {
         self.IsAdded(true);
         self.OnAddEvent.NotifyListeners(self);
+    };
+    
+    self.OnHideClick = () => {
+        self.OnHideEvent.NotifyListeners(self);
     };
 
     self.ToggleExpanded = () => {

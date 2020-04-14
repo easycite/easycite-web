@@ -13,5 +13,6 @@ namespace EasyCiteLib.Repository.EasyCite
         public User User { get; set; }
 
         public List<ProjectReference> ProjectReferences { get; set; } = new List<ProjectReference>();
+        public List<ProjectHiddenResult> ProjectHiddenResults { get; set; } = new List<ProjectHiddenResult>();
     }
 }

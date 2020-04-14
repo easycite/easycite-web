@@ -86,5 +86,12 @@ namespace EasyCite.Controllers
 
             return Json(results);
         }
+
+        public async Task<JsonResult> HideResult(int projectId, string documentId)
+        {
+            var results = await _projectReferencesProcessor.HideResultAsync(projectId, documentId);
+
+            return Json(results);
+        }
     }
 }
