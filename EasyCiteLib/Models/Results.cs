@@ -8,14 +8,16 @@ namespace EasyCiteLib.Models
     {
         public T Data { get; set; } = new T();
 
+        public bool HasProblem => HasException || HasError;
+
         #region Exceptions
         public List<Exception> Exceptions { get; } = new List<Exception>();
         public bool HasException => Exceptions.Any();
 
-
-        public void MergeExceptions<U>(Results<U> results) where U: new()
+        public void Merge<U>(Results<U> results) where U: new()
         {
             Exceptions.AddRange(results.Exceptions);
+            ValidationErrors.AddRange(results.ValidationErrors);
         }
 
         public void AddException(Exception exception)
@@ -25,7 +27,7 @@ namespace EasyCiteLib.Models
         #endregion
 
         #region Validation
-        public IList<ValidationError> ValidationErrors { get; set; } = new List<ValidationError>();
+        public List<ValidationError> ValidationErrors { get; set; } = new List<ValidationError>();
         public bool HasError => ValidationErrors.Any();
         public void AddError(string message) => AddError(null, message);
         public void AddError(string property, string message) {

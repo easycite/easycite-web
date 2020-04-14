@@ -33,7 +33,7 @@ namespace EasyCite.Controllers
             var addResults = await _projectReferencesProcessor.AddAsync(projectId, documentId);
             var results = await _projectReferencesProcessor.GetAllAsync(projectId);
             
-            results.MergeExceptions(addResults);
+            results.Merge(addResults);
 
             return Json(results);
         }
@@ -44,7 +44,7 @@ namespace EasyCite.Controllers
             var removeResults = await _projectReferencesProcessor.RemoveAsync(projectId, documentId);
             var results = await _projectReferencesProcessor.GetAllAsync(projectId);
             
-            results.MergeExceptions(removeResults);
+            results.Merge(removeResults);
 
             return Json(results);
         }
