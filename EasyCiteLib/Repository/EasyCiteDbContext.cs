@@ -30,6 +30,10 @@ namespace EasyCiteLib.Repository
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ProjectReference>()
+                .Property(pr => pr.IsPending)
+                .HasDefaultValue(true);
+            
             // Setup cascade deletes
             modelBuilder.Entity<ProjectReference>()
                 .HasOne(pr => pr.Project)

@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace EasyCiteLib.Repository.EasyCite
 {
     public class ProjectReference
@@ -8,5 +10,7 @@ namespace EasyCiteLib.Repository.EasyCite
         public Project Project { get; set; }
 
         public string ReferenceId { get; set; }
+
+        public bool IsPending { get; set; }
     }
 }

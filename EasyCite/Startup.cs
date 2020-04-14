@@ -83,6 +83,7 @@ namespace EasyCite
                 });
 
             services.AddHttpContextAccessor();
+            services.AddHttpClient();
             services.AddMemoryCache();
         }
 

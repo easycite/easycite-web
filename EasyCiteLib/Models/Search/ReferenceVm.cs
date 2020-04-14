@@ -5,5 +5,6 @@ namespace EasyCiteLib.Models.Search
         public string Id { get; set; }
         public string Title { get; set; }
         public string Abstract { get; set; }
+        public bool IsPending { get; set; }
     }
 }

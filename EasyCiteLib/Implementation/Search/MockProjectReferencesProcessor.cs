@@ -22,13 +22,15 @@ namespace EasyCiteLib.Implementation.Search
             _context = context;
         }
 
-        public async Task<Results<bool>> AddAsync(int projectId, string documentId)
+        public Task<Results<List<string>>> AddAsync(int projectId, IEnumerable<string> documentIds)
         {
-            var results = new Results<bool>();
-            
-            _context.DocumentIds.Add(documentId);
+            var results = new Results<List<string>>();
 
-            return results;
+            List<string> documentsToAdd = documentIds.Except(_context.DocumentIds).ToList();
+            _context.DocumentIds.AddRange(documentsToAdd);
+            results.Data = documentsToAdd;
+
+            return Task.FromResult(results);
         }
 
         public async Task<Results<bool>> RemoveAsync(int projectId, string documentId)
@@ -50,8 +52,17 @@ namespace EasyCiteLib.Implementation.Search
                 {
                     Id = document.Id,
                     Title = document.Title,
-                    Abstract = document.Abstract
+                    Abstract = document.Abstract,
+                    IsPending = false
                 }).ToList()
+            };
+        }
+
+        public async Task<Results<List<ReferenceVm>>> GetCompletedScrapesAsync(int projectId, IEnumerable<string> documentIds)
+        {
+            return new Results<List<ReferenceVm>>
+            {
+                Data = new List<ReferenceVm>()
             };
         }
     }
