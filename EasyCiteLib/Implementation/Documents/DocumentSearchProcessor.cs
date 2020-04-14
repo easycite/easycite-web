@@ -83,7 +83,7 @@ namespace EasyCiteLib.Implementation.Documents
 
         public async Task<DocumentSearchResults.Article> GetByNameExactAsync(string name)
         {
-            var results = await SearchByNameAsync(name);
+            var results = await SearchByNameAsync($"\"{name}\"");
 
             return results.Results.FirstOrDefault(r => r.Title.Trim().Equals(name.Trim(), StringComparison.CurrentCultureIgnoreCase));
         }
