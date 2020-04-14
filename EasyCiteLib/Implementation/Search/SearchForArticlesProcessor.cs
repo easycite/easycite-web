@@ -11,23 +11,26 @@ namespace EasyCiteLib.Implementation.Search
 {
     public class SearchForArticlesProcessor : ISearchForArticlesProcessor
     {
-        private readonly DocumentContext _documentContext;
+        private readonly ISearchResultsCacheManager _searchResultsCacheManager;
 
-        public SearchForArticlesProcessor(DocumentContext documentContext)
+        public SearchForArticlesProcessor(ISearchResultsCacheManager searchResultsCacheManager)
         {
-            _documentContext = documentContext;
+            _searchResultsCacheManager = searchResultsCacheManager;
         }
 
-        public async Task<Results<SearchResultsVm>> SearchAsync(SearchData searchData)
+        public async Task<Results<SearchResultsVm>> SearchAsync(int projectId, SearchData searchData)
         {
             int offset = Math.Max(searchData.PageNumber, 0) * searchData.ItemsPerPage;
-            
+
             IList<Document> documents;
             int totalCount;
 
             try
             {
-                (documents, totalCount) = await _documentContext.SearchDocumentsAsync(searchData.SearchByIds, searchData.SearchTags, offset, searchData.ItemsPerPage);
+                IReadOnlyList<Document> allResults = await _searchResultsCacheManager.GetSearchResultsAsync(projectId, searchData);
+
+                documents = allResults.Skip(offset).Take(searchData.ItemsPerPage).ToList();
+                totalCount = allResults.Count;
             }
             catch (Exception e)
             {
@@ -49,7 +52,10 @@ namespace EasyCiteLib.Implementation.Search
                 NumberOfPages = (int)Math.Ceiling((double)totalCount / searchData.ItemsPerPage)
             };
 
-            return new Results<SearchResultsVm> { Data = vm };
+            return new Results<SearchResultsVm>
+            {
+                Data = vm
+            };
         }
     }
 }
