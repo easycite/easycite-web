@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using EasyCiteLib.Interface.Account;
-using System.Security.Claims;
-using System.Linq;
-using EasyCiteLib.Models.Account;
 using EasyCiteLib.Repository;
 using EasyCiteLib.Repository.EasyCite;
 using Microsoft.EntityFrameworkCore;
@@ -31,26 +28,8 @@ namespace EasyCite.Controllers
             var url = Url.Action(Url.Action("LoginCallback", "Account", new { returnUrl = returnUrl }));
             await HttpContext.ChallengeAsync(new AuthenticationProperties
             {
-                RedirectUri = Url.Action("LoginCallback", "Account", new { returnUrl = returnUrl })
+                RedirectUri = returnUrl
             });
-        }
-
-        public async Task<IActionResult> LoginCallback(string returnUrl = "/")
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                var userData = new UserSaveData
-                {
-                    ProviderKey = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value,
-                    Email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
-                    Firstname = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value,
-                    Lastname = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value
-                };
-
-                await _createUserProcessor.CreateIfNotExistsAsync(userData);
-            }
-
-            return Redirect(returnUrl);
         }
 
         public async Task Logout(string returnUrl = "/")

@@ -5,6 +5,6 @@ namespace EasyCiteLib.Interface.Account
 {
     public interface ICreateUserProcessor
     {
-        Task CreateIfNotExistsAsync(UserSaveData saveData);
+        Task<int> CreateIfNotExistsAsync(UserSaveData saveData);
     }
 }
