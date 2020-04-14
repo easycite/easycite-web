@@ -15,6 +15,7 @@
             self['Search'] = '@Url.Action("Index", "Search")';
         }();
 
+        var mvvm = new ProjectsMvvm();
         $(() => {
             // Knockout validation configuration
             ko.validation.init({
@@ -25,7 +26,6 @@
                 messageTemplate: 'error-message--template'
             });
 
-            var mvvm = new ProjectsMvvm();
             ko.applyBindings(mvvm);
         });
     </script>
@@ -35,16 +35,6 @@
     <div data-bind="text: field.error" class="invalid-feedback"></div>
 </script>
 
-<style>
-    td {
-        white-space: nowrap;
-    }
- 
-    table {
-        table-layout: fixed;
-    }
-</style>
-
 <div class="container">
     <div class="d-flex mb-5 justify-content-between">
         <h1>Your Projects</h1>
@@ -53,7 +43,7 @@
             New Project
         </button>
     </div>
-    <table class="table" data-bind="visible: TableIsVisible" style="display: none;">
+    <table class="table projects-table" data-bind="visible: TableIsVisible" style="display: none;">
         <thead class="thead-light">
             <tr>
                 <th>Name</th>

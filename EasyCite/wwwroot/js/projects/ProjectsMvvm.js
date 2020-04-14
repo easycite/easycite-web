@@ -15,7 +15,11 @@ function ProjectsMvvm() {
     });
 
     // --------- Observables --------- //
-    self.Projects = ko.observableArray();
+    self.Projects = ko.observableArray().extend({
+        uniqueConstraint: {
+            params: ["Name", "EditingName"]
+        }
+    });
     self.TableIsVisible = ko.pureComputed(() => {
         return self.Projects().length !== 0;
     });
@@ -62,19 +66,20 @@ function ProjectsMvvm() {
     self.Load();
 }
 
-function ProjectVm(project) {
+function ProjectVm(project, obsProjects) {
     var self = this;
     self.IsLoading = ko.observable(false);
+
+    self.Projects = obsProjects;
 
     self.Id = ko.observable();
     self.Name = ko.observable();
     self.NumberOfReferences = ko.observable();
-    
+
     self.IsEditing = ko.observable(false);
-    self.EditingName = ko.observable('')
-        .extend({ 
-            required: true
-        });
+    self.EditingName = ko.observable('').extend({
+        required: true
+    });
 
     self.Url = ko.pureComputed(() => {
         return ApiUrls['Search'] + '?projectId=' + self.Id();
@@ -99,7 +104,7 @@ function ProjectVm(project) {
     };
 
     self.OnClick = () => {
-        if(self.Id() !== undefined)
+        if (self.Id() !== undefined)
             window.location = self.Url();
     };
 
@@ -112,19 +117,19 @@ function ProjectVm(project) {
     self.OnSaveClick = () => {
         if (self.IsLoading() === true) return;
         self.IsLoading(true);
-        
+
         // Validation
-        if(self.IsValid() === false) return;
+        if (self.IsValid() === false) return;
 
         self.IsEditing(false);
-        
+
         let saveData = {
             Id: self.Id(),
             Name: self.EditingName()
         };
-        
+
         $.post(ApiUrls['Save'], saveData, results => {
-            if(results.HasException === true) return;
+            if (results.HasException === true) return;
 
             self.Load(results.Data);
 
@@ -141,7 +146,7 @@ function ProjectVm(project) {
         // Add confirm modal
 
         $.post(ApiUrls['Delete'], { projectId: self.Id() }, results => {
-            if(self.HasException === true) return;
+            if (self.HasException === true) return;
 
             self.OnDeleteEvent.NotifyListeners(self);
         }).always(() => {
@@ -151,12 +156,12 @@ function ProjectVm(project) {
     };
 
     self.OnCancelClick = () => {
-        if(self.Id() === undefined)
+        if (self.Id() === undefined)
             self.OnDeleteEvent.NotifyListeners(self);
         self.IsEditing(false);
     };
 
     // Load the data
-    if(project !== undefined && project !== null)
+    if (project !== undefined && project !== null)
         self.Load(project);
 }
