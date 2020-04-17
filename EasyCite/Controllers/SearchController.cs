@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Search;
 using EasyCiteLib.Models.Search;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyCite.Controllers
 {
+    [Authorize]
     public class SearchController : Controller
     {
         private readonly IProjectReferencesProcessor _projectReferencesProcessor;
@@ -31,9 +33,13 @@ namespace EasyCite.Controllers
             _documentSearchProcessor = documentSearchProcessor;
             _bibFileProcessor = bibFileProcessor;
         }
-        public async Task<IActionResult> Index(int projectId)
+
+        public async Task<IActionResult> Index(int? projectId)
         {
-            return View(await _loadSearchProcessor.LoadAsync(projectId));
+            if(projectId == null)
+                return RedirectToAction("Index", "Projects");
+
+            return View(await _loadSearchProcessor.LoadAsync(projectId.Value));
         }
 
         public async Task<JsonResult> GetReferences(int projectId)

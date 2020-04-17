@@ -1,43 +1,45 @@
-﻿<div class="modal import-references" tabindex="-1" role="dialog" data-bind="element: ModalElement, event: { 'hidden.bs.modal': ModalHidden }">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Import reference</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div data-bind="hidden: IsResultMode">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search IEEE..." data-bind="element: SearchElement, textInput: SearchText" />
-                        <div class="input-group-append">
-                            <button type="button" class="btn btn-outline-primary" data-bind="click: SubmitSearch, enable: SearchText">Search</button>
+﻿<script type="text/html" id="import-references-modal">
+    <div class="modal import-references" tabindex="-1" role="dialog" data-bind="element: ModalElement, event: { 'hidden.bs.modal': ModalHidden }">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import reference</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div data-bind="hidden: IsResultMode">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search IEEE..." data-bind="element: SearchElement, textInput: SearchText" />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-primary" data-bind="click: SubmitSearch, enable: SearchText">Search</button>
+                            </div>
+                        </div>
+
+                        <div class="text-center my-2 text-secondary">or</div>
+
+                        <div class="custom-file">
+                            <input type="file" accept=".bib" class="custom-file-input" id="uploadBibFile" data-bind="event: { change: FileChanged }, element: FileElement" />
+                            <label class="custom-file-label" for="uploadBibFile" data-bind="text: ChooseFileLabel">Choose File</label>
                         </div>
                     </div>
-
-                    <div class="text-center my-2 text-secondary">or</div>
-
-                    <div class="custom-file">
-                        <input type="file" accept=".bib" class="custom-file-input" id="uploadBibFile" data-bind="event: { change: FileChanged }, element: FileElement" />
-                        <label class="custom-file-label" for="uploadBibFile" data-bind="text: ChooseFileLabel">Choose File</label>
+                    <div data-bind="if: IsResultMode">
+                        <div class="mb-2">Select articles to import:</div>
+                        <div class="list-group" data-bind="foreach: SearchResults">
+                            <button type="button" class="list-group-item list-group-item-action d-flex align-items-center" data-bind="class: SelectedClass, click: ToggleSelected">
+                                <span class="flex-grow-1" data-bind="text: Title"></span>
+                                <i data-bind="class: SelectedBoxClass"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div data-bind="if: IsResultMode">
-                    <div class="mb-2">Select articles to import:</div>
-                    <div class="list-group" data-bind="foreach: SearchResults">
-                        <button type="button" class="list-group-item list-group-item-action d-flex align-items-center" data-bind="class: SelectedClass, click: ToggleSelected">
-                            <span class="flex-grow-1" data-bind="text: Title"></span>
-                            <i data-bind="class: SelectedBoxClass"></i>
-                        </button>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bind="hidden: IsResultMode" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bind="click: ResetToSearchMode, visible: IsResultMode">Back</button>
+                    <button type="button" class="btn btn-primary" data-bind="click: Import, visible: IsResultMode">Import</button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bind="hidden: IsResultMode" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-secondary" data-bind="click: ResetToSearchMode, visible: IsResultMode">Back</button>
-                <button type="button" class="btn btn-primary" data-bind="click: Import, visible: IsResultMode">Import</button>
             </div>
         </div>
     </div>
-</div>
+</script>

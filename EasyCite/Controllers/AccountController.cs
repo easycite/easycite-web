@@ -23,7 +23,7 @@ namespace EasyCite.Controllers
             _userDataContext = userDataContext;
         }
         [AllowAnonymous]
-        public async Task Login(string returnUrl = "/")
+        public async Task Login(string returnUrl = "/Projects")
         {
             var url = Url.Action(Url.Action("LoginCallback", "Account", new { returnUrl = returnUrl }));
             await HttpContext.ChallengeAsync(new AuthenticationProperties
