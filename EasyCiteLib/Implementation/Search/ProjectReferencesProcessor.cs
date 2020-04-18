@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Helpers;
+using EasyCiteLib.Interface.Projects;
 using EasyCiteLib.Interface.Queue;
 using EasyCiteLib.Interface.Search;
 using EasyCiteLib.Models;
@@ -20,6 +21,7 @@ namespace EasyCiteLib.Implementation.Search
         private readonly IGetDocumentProcessor _getDocumentProcessor;
         private readonly IGenericDataContextAsync<Project> _projectContext;
         private readonly IGetCurrentUserProcessor _getCurrentUserProcessor;
+        private readonly IGetProjectForUserProcessor _getProjectForUserProcessor;
         private readonly IQueueManager _queueManager;
         private readonly int _scrapeDepth;
 
@@ -27,27 +29,31 @@ namespace EasyCiteLib.Implementation.Search
             IGetDocumentProcessor getDocumentProcessor,
             IGenericDataContextAsync<Project> projectContext,
             IGetCurrentUserProcessor getCurrentUserProcessor,
+            IGetProjectForUserProcessor getProjectForUserProcessor,
             IQueueManager queueManager,
             IConfiguration configuration)
         {
             _getDocumentProcessor = getDocumentProcessor;
             _projectContext = projectContext;
             _getCurrentUserProcessor = getCurrentUserProcessor;
+            _getProjectForUserProcessor = getProjectForUserProcessor;
             _queueManager = queueManager;
             _scrapeDepth = int.Parse(configuration["ScrapeDepth"]);
         }
         public async Task<Results<List<string>>> AddAsync(int projectId, IEnumerable<string> documentIds)
         {
             var documentIdList = documentIds.ToList();
-            
+
             var results = new Results<List<string>>();
 
             try
             {
-                var projectResults = await GetProjectIfBelongsToUserAsync(projectId);
-                if (projectResults.HasError)
+                var projectResults = await _getProjectForUserProcessor.GetAsync(projectId);
+                if (results.HasProblem)
+                {
                     results.Merge(projectResults);
-                if (results.HasProblem) return results;
+                    return results;
+                }
 
                 List<string> documentsToAdd = documentIdList.Except(projectResults.Data.ProjectReferences.Select(pr => pr.ReferenceId)).ToList();
 
@@ -77,9 +83,9 @@ namespace EasyCiteLib.Implementation.Search
 
             try
             {
-                var projectResults = await GetProjectIfBelongsToUserAsync(projectId);
+                var projectResults = await _getProjectForUserProcessor.GetAsync(projectId);
 
-                if (projectResults.HasError)
+                if (projectResults.HasProblem)
                 {
                     results.Merge(projectResults);
                     return results;
@@ -113,9 +119,9 @@ namespace EasyCiteLib.Implementation.Search
 
             try
             {
-                var projectResults = await GetProjectIfBelongsToUserAsync(projectId);
+                var projectResults = await _getProjectForUserProcessor.GetAsync(projectId);
 
-                if (projectResults.HasError)
+                if (projectResults.HasProblem)
                 {
                     results.Merge(projectResults);
                     return results;
@@ -123,7 +129,7 @@ namespace EasyCiteLib.Implementation.Search
 
                 var completedIds = documentIds.Where(d => projectResults.Data.ProjectReferences.Any(pr => pr.ReferenceId == d && !pr.IsPending));
                 var documents = await _getDocumentProcessor.GetDocumentsAsync(completedIds);
-                
+
                 results.Data = documents.Select(d => new ReferenceVm
                 {
                     Id = d.Id,
@@ -146,10 +152,12 @@ namespace EasyCiteLib.Implementation.Search
 
             try
             {
-                var projectResults = await GetProjectIfBelongsToUserAsync(projectId);
-                if (projectResults.HasError)
+                var projectResults = await _getProjectForUserProcessor.GetAsync(projectId);
+                if (results.HasProblem)
+                {
                     results.Merge(projectResults);
-                if (results.HasProblem) return results;
+                    return results;
+                }
 
                 if (projectResults.Data.ProjectHiddenResults.All(ph => ph.ReferenceId != documentId))
                 {
@@ -174,13 +182,15 @@ namespace EasyCiteLib.Implementation.Search
         public async Task<Results<bool>> RemoveAsync(int projectId, string documentId)
         {
             var results = new Results<bool>();
-            
+
             try
             {
-                var projectResults = await GetProjectIfBelongsToUserAsync(projectId);
-                if (projectResults.HasError)
+                var projectResults = await _getProjectForUserProcessor.GetAsync(projectId);
+                if (results.HasProblem)
+                {
                     results.Merge(projectResults);
-                if (results.HasProblem) return results;
+                    return results;
+                }
 
                 var toRemove = projectResults.Data.ProjectReferences
                     .FirstOrDefault(pr => pr.ReferenceId == documentId);
@@ -199,23 +209,6 @@ namespace EasyCiteLib.Implementation.Search
             {
                 results.AddException(new System.Exception("Failed to add this reference", e));
             }
-
-            return results;
-        }
-
-        private async Task<Results<Project>> GetProjectIfBelongsToUserAsync(int projectId)
-        {
-            Results<Project> results = new Results<Project>();
-
-            var userId = await _getCurrentUserProcessor.GetUserIdAsync();
-
-            results.Data = await _projectContext.DataSet
-                .Include(p => p.ProjectReferences)
-                .Include(p => p.ProjectHiddenResults)
-                .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
-
-            if (results.Data == null)
-                results.AddError("Could not find this project");
 
             return results;
         }

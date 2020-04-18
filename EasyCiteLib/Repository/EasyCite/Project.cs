@@ -10,9 +10,9 @@ namespace EasyCiteLib.Repository.EasyCite
 
 
         public int UserId { get; set; }
-        public User User { get; set; }
+        public virtual User User { get; set; }
 
-        public List<ProjectReference> ProjectReferences { get; set; } = new List<ProjectReference>();
-        public List<ProjectHiddenResult> ProjectHiddenResults { get; set; } = new List<ProjectHiddenResult>();
+        public virtual List<ProjectReference> ProjectReferences { get; set; } = new List<ProjectReference>();
+        public virtual List<ProjectHiddenResult> ProjectHiddenResults { get; set; } = new List<ProjectHiddenResult>();
     }
 }

@@ -18,6 +18,9 @@ function SearchResultsMvvm(results) {
     self.ItemsPerPage = ko.observable(10); // TODO: make this configurable
     self.NumberOfPages = ko.observable(1);
 
+    // Export Modal
+    self.ExportReferencesModal = new ExportReferencesModal(self.ProjectId);
+
     // Search Depth
     self.SearchDepthOptions = ko.observableArray();
     for (let i = 0; i < results.Data.SearchDepths.length; i++) {

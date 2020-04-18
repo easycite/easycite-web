@@ -16,6 +16,7 @@
 
     <script src="~/js/search/SearchResultsMvvm.js"></script>
     <script src="~/js/search/ImportReferencesMvvm.js"></script>
+    <script src="~/js/search/ExportReferencesModal.js"></script>
 }
 
 @section koApplyBindings {
@@ -31,6 +32,7 @@
             self['UploadAndSearchByBibFile'] = '@Url.Action("UploadAndSearchByBibFile")';
             self['PendingReferencesStatus'] = '@Url.Action("PendingReferencesStatus")';
             self['HideResult'] = '@Url.Action("HideResult")';
+            self['DownloadBibFile'] = '@Url.Action("DownloadBibFile")';
         }();
 
         $(() => {
@@ -50,7 +52,7 @@
             <div class="d-flex justify-content-between align-items-center bg-dark text-light p-2 px-3">
                 <a href="#" class="text-light" data-bind="click: ImportReferencesModal.Show"><i class="fas fa-upload"></i></a>
                 References
-                <a href="#" class="text-light"><i class="fas fa-download"></i></a>
+                <a href="#" class="text-light" data-bind="click: ExportReferencesModal.Show"><i class="fas fa-download"></i></a>
             </div>
             <div class="accordion" data-bind="foreach: References">
                 <div class="card p-2">
@@ -70,29 +72,6 @@
                 <button type="button" class="btn btn-primary" data-bind="click: SyncReferences">Sync</button>
             </div>
         </div>
-        @*<div class="col-sm-4 order-sm-1 col-xl-2">
-            <div class="bg-dark p-2 px-3 text-light text-center">Sort / Filter</div>
-            <div class="border border-top-0">
-                <div class="d-flex p-1">
-                    <a href="#" class="text-dark px-1"><i class="far fa-square"></i></a>
-                    <div class="flex-fill pl-1">Popularity</div>
-                    <a href="#" class="text-dark invisible flex-shrink-0 ml-1"><i class="fas fa-arrow-up"></i></a>
-                    <a href="#" class="text-dark flex-shrink-0 ml-1"><i class="fas fa-arrow-down"></i></a>
-                </div>
-                <div class="d-flex p-1">
-                    <a href="#" class="text-dark px-1"><i class="far fa-square"></i></a>
-                    <div class="flex-fill pl-1">Author Reputation</div>
-                    <a href="#" class="text-dark flex-shrink-0 ml-1"><i class="fas fa-arrow-up"></i></a>
-                    <a href="#" class="text-dark flex-shrink-0 ml-1"><i class="fas fa-arrow-down"></i></a>
-                </div>
-                <div class="d-flex p-1">
-                    <a href="#" class="text-dark px-1"><i class="far fa-square"></i></a>
-                    <div class="flex-fill pl-1">Current</div>
-                    <a href="#" class="text-dark flex-shrink-0 ml-1"><i class="fas fa-arrow-up"></i></a>
-                    <a href="#" class="text-dark flex-shrink-0 ml-1 invisible"><i class="fas fa-arrow-down"></i></a>
-                </div>
-            </div>
-        </div>*@
         <div class="col-12 col-xl-8 order-xl-first">
             <div class="row">
                 <h1 class="col-12 text-center">Results</h1>
@@ -182,8 +161,74 @@
 </template>
 
 <div data-bind="template: { name: 'import-references-modal', data: ImportReferencesModal } "></div>
+<div data-bind="template: { name: 'export-references--modal', data: ExportReferencesModal } "></div>
 
 @{ await Html.RenderPartialAsync("Import"); }
 
 <script type="text/html" id="export-references--modal">
+    <div class="modal" role="dialog" tabindex="-1" data-bind="element: Element">
+        <div class="modal-dialog modal-dialog-centered" role="document" data-bind="css: { 'modal-lg': IsLargeModal }">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0 justify-content-between">
+                    <h5 class="modal-title">Export</h5>
+                    <nav>
+                        <div class="nav nav-pills" role="tablist">
+                            <a 
+                                data-bind="click: ActivateBibTab"
+                                class="nav-item nav-link active" 
+                                id="export--nav-bib-tab" 
+                                data-toggle="pill" 
+                                href="#export--bib" 
+                                role="tab" 
+                                aria-controls="export--nav-bib" 
+                                aria-selected="true">.bib</a>
+                            <a 
+                                data-bind="click: ActivateRichTextTab"
+                                class="nav-item nav-link" 
+                                id="export--nav-rich-text-tab" 
+                                data-toggle="pill" 
+                                href="#export--rich-text" 
+                                role="tab" 
+                                aria-controls="export--nav-rich-text" 
+                                aria-selected="false">Rich Text</a>
+                        </div>
+                    </nav>
+                    <button type="button" class="close mx-0 mr-n3" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>    
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="tab-content">
+                                    <div class="tab-pane fade show active" id="export--bib" role="tabpanel" aria-labelledby="export--nav-bib-tab">
+                                        <label>Custom file name</label>
+                                        <div class="input-group">
+                                            <input type="text"
+                                                class="form-control" 
+                                                aria-label="Custom File Name"
+                                                data-bind="value: Filename">
+                                            <div class="input-group-append">
+                                                <a type="button" class="btn btn-primary" data-bind="attr: { href: BibDownloadUrl }, click: BibDownloadOnClick" download>
+                                                    Download
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="export--rich-text" role="tabpanel" aria-labelledby="export--nav-rich-text-tab">
+                                        rich text
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
 </script>

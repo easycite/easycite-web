@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Search;
+using EasyCiteLib.Interface.Search.Export;
 using EasyCiteLib.Models.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,24 +20,27 @@ namespace EasyCite.Controllers
         private readonly ILoadSearchProcessor _loadSearchProcessor;
         private readonly IDocumentSearchProcessor _documentSearchProcessor;
         private readonly IBibFileProcessor _bibFileProcessor;
+        private readonly IGetBibStreamProcessor _getBibStreamProcessor;
 
         public SearchController(
             IProjectReferencesProcessor projectReferencesProcessor,
             ISearchForArticlesProcessor searchForArticlesProcessor,
             ILoadSearchProcessor loadSearchProcessor,
             IDocumentSearchProcessor documentSearchProcessor,
-            IBibFileProcessor bibFileProcessor)
+            IBibFileProcessor bibFileProcessor,
+            IGetBibStreamProcessor getBibStreamProcessor)
         {
             _projectReferencesProcessor = projectReferencesProcessor;
             _searchForArticlesProcessor = searchForArticlesProcessor;
             _loadSearchProcessor = loadSearchProcessor;
             _documentSearchProcessor = documentSearchProcessor;
             _bibFileProcessor = bibFileProcessor;
+            _getBibStreamProcessor = getBibStreamProcessor;
         }
 
         public async Task<IActionResult> Index(int? projectId)
         {
-            if(projectId == null)
+            if (projectId == null)
                 return RedirectToAction("Index", "Projects");
 
             return View(await _loadSearchProcessor.LoadAsync(projectId.Value));
@@ -81,7 +85,7 @@ namespace EasyCite.Controllers
         {
             if (string.IsNullOrEmpty(term))
                 return BadRequest();
-            
+
             var results = await _documentSearchProcessor.SearchByNameAsync(term);
             return Json(results.Results);
         }
@@ -105,5 +109,14 @@ namespace EasyCite.Controllers
 
             return Json(results);
         }
+
+        #region Export
+        public async Task<IActionResult> DownloadBibFile(int projectId, string filename = null)
+        {
+            var results = await _getBibStreamProcessor.GetAsync(projectId, filename);
+            return File(results.Data.Content, "text/plain", results.Data.Filename);
+        }
+        #endregion
     }
+
 }
