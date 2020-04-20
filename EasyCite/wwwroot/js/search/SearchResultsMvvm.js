@@ -91,7 +91,6 @@ function SearchResultsMvvm(results) {
         self.IsLoading(true);
 
         self.AddReferences([ result ]).always(() => {
-            self.IsOutOfSync(true);
             self.IsLoading(false);
         });
     };
@@ -142,7 +141,7 @@ function SearchResultsMvvm(results) {
             searchData: {
                 PageNumber: self.PageNumber(),
                 ItemsPerPage: self.ItemsPerPage(),
-                SearchByIds: self.References().map(element => element.Id()),
+                SearchByIds: self.References().filter(r => !r.IsPending()).map(element => element.Id()),
                 AllTags: allTags,
                 AnyTags: anyTags,
                 ForceNoCache: self.IsOutOfSync(),
@@ -212,6 +211,7 @@ function SearchResultsMvvm(results) {
                 if (matchingOldRef) {
                     newRef.OnRemoveEvent.AddListener(self, self.OnReferenceRemoveCallback);
                     self.References.replace(matchingOldRef, newRef);
+                    self.IsOutOfSync(true);
                 }
             });
         });
@@ -243,9 +243,7 @@ function SearchResultsMvvm(results) {
 
     self.ImportReferencesModal = new ImportReferencesMvvm();
     self.ImportReferencesModal.OnSave.AddListener(self, function (importReferences) {
-        self.AddReferences(importReferences).done(function () {
-            self.IsOutOfSync(true);
-        });
+        self.AddReferences(importReferences);
     });
 
     self.OnHideResultCallback = result => {
