@@ -1,0 +1,10 @@
+<template id="dropdown--template">
+    <div class="dropdown d-flex">
+        <button class="btn btn-secondary btn-sm dropdown-toggle flex-fill" type="button" id="dropdownMenuButton"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-bind="text: ButtonText">
+        </button>
+        <div class="dropdown-menu flex-fill" aria-labelledby="dropdownMenuButton" data-bind="foreach: Options">
+            <a class="dropdown-item" href="#" data-bind="text: OptionText, click: OnClick"></a>
+        </div>
+    </div>
+</template>

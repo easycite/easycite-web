@@ -23,22 +23,22 @@ namespace EasyCiteLib
         {
             Assembly assembly = typeof(LibraryModule).Assembly;
 
-            if (_environment.IsDevelopment())
-            {
-                builder.RegisterAssemblyTypes(assembly)
-                    .Where(t => t.Name.StartsWith("Mock")
-                        && !t.IsInterface
-                        && t.Name.EndsWith("Processor"))
-                    .AsImplementedInterfaces()
-                    .InstancePerLifetimeScope();
+            // if (_environment.IsDevelopment())
+            // {
+            //     builder.RegisterAssemblyTypes(assembly)
+            //         .Where(t => t.Name.StartsWith("Mock")
+            //             && !t.IsInterface
+            //             && t.Name.EndsWith("Processor"))
+            //         .AsImplementedInterfaces()
+            //         .InstancePerLifetimeScope();
                 
-                builder.RegisterAssemblyTypes(assembly)
-                    .Where(t => t.Name.StartsWith("Mock")
-                        && !t.IsInterface
-                        && t.Name.EndsWith("Manager"))
-                    .AsImplementedInterfaces()
-                    .SingleInstance();
-            }
+            //     builder.RegisterAssemblyTypes(assembly)
+            //         .Where(t => t.Name.StartsWith("Mock")
+            //             && !t.IsInterface
+            //             && t.Name.EndsWith("Manager"))
+            //         .AsImplementedInterfaces()
+            //         .SingleInstance();
+            // }
 
             builder.RegisterAssemblyTypes(assembly)
                 .Where(t => !t.Name.StartsWith("Mock")

@@ -8,7 +8,7 @@ namespace EasyCiteLib.Implementation.Documents
 {
     public class BibFileProcessor : IBibFileProcessor
     {
-        static readonly Regex _titleRegex = new Regex(@"@article{.*?title\s*=\s*{([^}]+)}", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex _titleRegex = new Regex(@"(?:@[a-z]+{[\s\S]*?\stitle\s*=\s*{([^}]+)})", RegexOptions.Multiline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
         
         public Task<IEnumerable<string>> GetTitlesAsync(string bibFileContent)
         {

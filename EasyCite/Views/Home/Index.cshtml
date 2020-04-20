@@ -3,6 +3,17 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to EasyCite!</h1>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <p>
+            To get started, go to your <a asp-controller="Projects" asp-action="Index">projects list</a>!
+        </p>
+    }
+    else
+    {
+        <p>
+            To get started, <a asp-controller="Account" asp-action="Login">log in with Google</a>!
+        </p>
+    }
 </div>

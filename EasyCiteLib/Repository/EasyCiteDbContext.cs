@@ -27,7 +27,10 @@ namespace EasyCiteLib.Repository
             var builder = new SqlConnectionStringBuilder(_configuration.GetConnectionString("EasyCite"));
             builder.Password = _configuration["EasyCitePassword"];
             builder.TrustServerCertificate = true;
-            options.UseSqlServer(builder.ConnectionString, opts => opts.MigrationsAssembly("EasyCite"));
+
+            options
+                .UseLazyLoadingProxies()
+                .UseSqlServer(builder.ConnectionString, opts => opts.MigrationsAssembly("EasyCite"));
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

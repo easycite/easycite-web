@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using EasyCiteLib.Interface.Account;
 using EasyCiteLib.Repository;
 using EasyCiteLib.Repository.EasyCite;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyCite.Controllers
@@ -12,20 +11,16 @@ namespace EasyCite.Controllers
     [Authorize]
     public class AccountController : Controller
     {
-        private readonly ICreateUserProcessor _createUserProcessor;
         private readonly IGenericDataContextAsync<User> _userDataContext;
 
-        public AccountController(
-            ICreateUserProcessor createUserProcessor,
-            IGenericDataContextAsync<User> userDataContext)
+        public AccountController(IGenericDataContextAsync<User> userDataContext)
         {
-            _createUserProcessor = createUserProcessor;
             _userDataContext = userDataContext;
         }
+
         [AllowAnonymous]
-        public async Task Login(string returnUrl = "/")
+        public async Task Login(string returnUrl = "/Projects")
         {
-            var url = Url.Action(Url.Action("LoginCallback", "Account", new { returnUrl = returnUrl }));
             await HttpContext.ChallengeAsync(new AuthenticationProperties
             {
                 RedirectUri = returnUrl

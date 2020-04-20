@@ -49,9 +49,6 @@ namespace EasyCiteLib.Implementation.Projects
                 }
                 else if (project == null || project.UserId != userId)
                     results.AddError("This project could not be found or you do not own this project");
-                // else if(user.Projects
-                //     .Any(p => p.Id != project.Id && p.Name == saveData.Name))
-                //     results.AddError("Name", "This name is already in use by another one of your projects.");
 
                 if(results.HasError) return results;
 
@@ -59,7 +56,7 @@ namespace EasyCiteLib.Implementation.Projects
                 await _userContext.SaveChangesAsync();
                 results.Data.Id = project.Id;
                 results.Data.Name = project.Name;
-                results.Data.NumberOfReferences = 0;
+                results.Data.NumberOfReferences = project.ProjectReferences.Count();
             }
             catch (Exception e)
             {

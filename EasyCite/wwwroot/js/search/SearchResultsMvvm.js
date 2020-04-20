@@ -6,23 +6,32 @@ function SearchResultsMvvm(results) {
     self.ProjectId = ko.observable(results.Data.ProjectId);
     
     // References
-    self.References = ko.observableArray();
+    self.References = ko.observableArray([]);
+    self.HasReferences = ko.pureComputed(() => self.References().length > 0);
     for (let i = 0; i < results.Data.References.length; i++) {
         const reference = results.Data.References[i];
         self.References.push(new ReferenceVm(reference));
     }
 
     self.SearchResults = ko.observableArray();
+    self.NotHasSearchResults = ko.pureComputed(() => self.SearchResults().length <= 0);
     self.PageNumber = ko.observable(0);
     self.PageNumberDisplay = ko.pureComputed(() => self.PageNumber() + 1);
     self.ItemsPerPage = ko.observable(10); // TODO: make this configurable
     self.NumberOfPages = ko.observable(1);
 
+    // Export Modal
+    self.ExportReferencesModal = new ExportReferencesModal(self.ProjectId);
+    self.ShowExportModal = () => {
+        if(self.HasReferences() === true)
+            self.ExportReferencesModal.Show();
+    };
+
     // Search Depth
     self.SearchDepthOptions = ko.observableArray();
     for (let i = 0; i < results.Data.SearchDepths.length; i++) {
         const searchDepth = results.Data.SearchDepths[i];
-        self.SearchDepthOptions.push(new DropdownOption(searchDepth.Value, searchDepth.Text));
+        self.SearchDepthOptions.push(new DropdownOption(searchDepth.Value, searchDepth.Text, searchDepth.HelpText));
     }
 
     self.SearchDepth = ko.observable(results.Data.DefaultSearchDepth);
@@ -41,6 +50,7 @@ function SearchResultsMvvm(results) {
         const option = results.Data.SortOptions[i];
         self.SearchTypes.push(new DropdownOption(option.Value, option.Text));
     }
+
     self.SelectedSearchType = ko.observable(results.Data.DefaultSortOption);
     self.SelectedSearchType.subscribe(() => {
         self.IsOutOfSync(true);
@@ -52,7 +62,7 @@ function SearchResultsMvvm(results) {
         self.IsOutOfSync(true);
     });
 
-    self.IsOutOfSync = ko.observable(true);
+    self.IsOutOfSync = ko.observable(false);
 
     self.PreviousIsDisabled = ko.pureComputed(() => self.PageNumber() === 0);
     self.NextIsDisabled = ko.pureComputed(() => self.PageNumberDisplay() >= self.NumberOfPages());
@@ -64,6 +74,7 @@ function SearchResultsMvvm(results) {
     self.RemoveReferenceUrl = ko.observable(ApiUrls['RemoveReference']);
     self.PendingReferencesStatusUrl = ko.observable(ApiUrls['PendingReferencesStatus']);
     self.HideResultUrl = ko.observable(ApiUrls['HideResult']);
+    self.AutoCompleteKeywordsUrl = ko.observable(ApiUrls['AutoCompleteKeywords']);
 
     // ---------- Functions ---------- //
     self.LoadReferences = function (references) {        
@@ -80,14 +91,12 @@ function SearchResultsMvvm(results) {
         self.IsLoading(true);
 
         self.AddReferences([ result ]).always(() => {
-            self.IsOutOfSync(true);
             self.IsLoading(false);
         });
     };
 
     self.OnReferenceRemoveCallback = function(reference) {
         if (self.IsLoading() === true) return;
-        self.IsLoading(true);
 
         $.post(self.RemoveReferenceUrl(), {
             projectId: self.ProjectId(),
@@ -98,7 +107,6 @@ function SearchResultsMvvm(results) {
             }
         }).always(() => {
             self.IsOutOfSync(true);
-            self.IsLoading(false);
         });
     };
 
@@ -110,22 +118,32 @@ function SearchResultsMvvm(results) {
             projectId: self.ProjectId()
         }).then(results => {
             self.LoadReferences(results.Data);
+            self.IsOutOfSync(false);
         }).always(() => {
             self.IsLoading(false);
         });
     };
 
-    self.Search = () => {
-        if (self.IsLoading() === true) return;
-        self.IsLoading(true);
+    self.Search = pageNumber => {
+        if(pageNumber === undefined) {
+            if (self.IsLoading() === true) return;
+            self.IsLoading(true);
+        }
+
+        const tags = self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s);
+        const quotePattern = /^(["'])(.*)\1$/;
         
+        const allTags = tags.map(s => quotePattern.exec(s)).filter(s => s).map(s => s[2]);
+        const anyTags = tags.filter(s => !quotePattern.test(s));
+
         var data = {
             projectId: self.ProjectId(),
             searchData: {
                 PageNumber: self.PageNumber(),
                 ItemsPerPage: self.ItemsPerPage(),
                 SearchByIds: self.References().filter(r => !r.IsPending()).map(element => element.Id()),
-                SearchTags: self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s),
+                AllTags: allTags,
+                AnyTags: anyTags,
                 ForceNoCache: self.IsOutOfSync(),
                 SearchSortType: self.SelectedSearchType(),
                 SearchDepth: self.SearchDepth()
@@ -140,7 +158,7 @@ function SearchResultsMvvm(results) {
 
             data.Results.map(d => new ResultVm(d)).forEach(function (result) {
                 result.OnAddEvent.AddListener(self, self.OnReferenceAddCallback);
-                result.OnHideEvent.AddListener(self, self.OnHideResultCallback);
+                result.OnHideEvent.AddListener(self, self.ConfirmHideReferenceModal.Show);
                 self.SearchResults.push(result);
             });
             self.IsOutOfSync(false);
@@ -150,9 +168,10 @@ function SearchResultsMvvm(results) {
     };
     
     self.AddReferences = references => {
+
         return $.post(self.AddReferenceUrl(), {
             projectId: self.ProjectId(),
-            documentIds: [ references.map(r => r.Id()) ]
+            documentIds: references.map(r => r.Id())
         }).then(results => {
             const imported = results.Data;
             
@@ -192,6 +211,7 @@ function SearchResultsMvvm(results) {
                 if (matchingOldRef) {
                     newRef.OnRemoveEvent.AddListener(self, self.OnReferenceRemoveCallback);
                     self.References.replace(matchingOldRef, newRef);
+                    self.IsOutOfSync(true);
                 }
             });
         });
@@ -210,7 +230,7 @@ function SearchResultsMvvm(results) {
         self.PageNumber(Math.max(0, oldPage - 1));
         
         if(self.PageNumber() !== oldPage)
-            self.Search();
+            self.Search(self.PageNumber());
     };
 
     self.SearchNext = () => {
@@ -218,16 +238,14 @@ function SearchResultsMvvm(results) {
         self.PageNumber(Math.min(self.NumberOfPages() - 1, oldPage + 1));
         
         if(self.PageNumber() !== oldPage)
-            self.Search();
+            self.Search(self.PageNumber());
     };
 
     self.ImportReferencesModal = new ImportReferencesMvvm();
     self.ImportReferencesModal.OnSave.AddListener(self, function (importReferences) {
-        self.AddReferences(importReferences).done(function () {
-            self.IsOutOfSync(true);
-        });
+        self.AddReferences(importReferences);
     });
-    
+
     self.OnHideResultCallback = result => {
         return $.post(self.HideResultUrl(), {
             projectId: self.ProjectId(),
@@ -239,6 +257,13 @@ function SearchResultsMvvm(results) {
             }
         });
     };
+
+    // Confirm Hide modal
+    self.ConfirmHideReferenceModal = new ConfirmModal({
+        Message: 'Are you sure you wish to hide this reference?',
+        AcceptButtonCss: 'btn-danger',
+        OnAcceptCallback: self.OnHideResultCallback
+    });
 
     self.Load().then(() => {
         return self.Search();
@@ -259,13 +284,14 @@ function ReferenceVm(reference) {
     self.TitleDisplay = ko.pureComputed(() => {
         if (!self.Title() && self.IsPending())
             return 'Importing reference...';
-        if (self.IsPending())
-            return self.Title() + ' (pending)';
         
         return self.Title();
     });
     self.PendingTitleClass = ko.pureComputed(() => {
         return self.IsPending() ? 'font-italic text-muted' : '';
+    });
+    self.Tooltip = ko.pureComputed(() => {
+        return self.IsPending() ? 'Importing...' : '';
     });
     
     self.IsExpanded = ko.observable(false);
@@ -298,6 +324,7 @@ function ResultVm(result) {
     self.AuthorName = ko.observable(result.AuthorName);
     self.Conference = ko.observable(result.Conference);
     self.Abstract = ko.observable(result.Abstract);
+    self.Url = ko.pureComputed(() => 'https://ieeexplore.ieee.org/document/' + self.Id());
 
     self.IsAdded = ko.observable(false);
     self.AddButtonText = ko.pureComputed(() => self.IsAdded() ? 'Added' : 'Add');
@@ -323,3 +350,59 @@ function ResultVm(result) {
         self.IsExpanded(!self.IsExpanded());
     };
 }
+
+ko.bindingHandlers.keywordAutoComplete = {
+    init: (element, valueAccessor, allBindings, viewModel) => {
+        let split = function (val) {
+            return val.split(/,\s*/);
+        };
+        let extractLast = function (term) {
+            return split(term).pop();
+        };
+        
+        const textObservable = valueAccessor();
+
+        $(element).on('keydown', function (e) {
+            if (e.keyCode === $.ui.keyCode.TAB && $(this).autocomplete('instance').menu.active) {
+                e.preventDefault();
+            }
+        }).autocomplete({
+            source: function (req, rsp) {
+                const term = extractLast(req.term).trim().replace(/['"]/g, '');
+                
+                if (!term)
+                    return;
+                
+                $.get(viewModel.AutoCompleteKeywordsUrl(), {
+                    term: extractLast(req.term).trim().replace(/['"]/g, ''),
+                    resultsCount: 10
+                }).done(function (data) {
+                    rsp(data.Data);
+                });
+            },
+            search: function () {
+                const term = extractLast(this.value);
+                if (!term.length) {
+                    return false;
+                }
+            },
+            focus: function () {
+                return false;
+            },
+            select: function (event, ui) {
+                const terms = split(this.value);
+                const popped = terms.pop().trim().substr(0, 1);
+                if (popped === '"' || popped === '\'') {
+                    terms.push(popped + ui.item.value + popped);
+                }
+                else {
+                    terms.push(ui.item.value);
+                }
+                terms.push('');
+                this.value = terms.join(', ');
+                textObservable(this.value);
+                return false;
+            }
+        });
+    }
+};

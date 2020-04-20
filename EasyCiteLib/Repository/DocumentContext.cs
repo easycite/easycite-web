@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Models.Search;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 using Neo4jClient;
 using Neo4jClient.Cypher;
@@ -110,8 +111,8 @@ namespace EasyCiteLib.Repository
                     .ThenByDescending(r => r.Reference.PageRank)
                     .Select(r => r.Reference.Id)
                     .Except(documentIdList),
-                SearchSortType.Recency => results.OrderByDescending(d => d.Reference.PublishDate).Select(d => d.DocumentId),
-                SearchSortType.AuthorPopularity => results.OrderByDescending(d => d.AuthorPopularity).Select(d => d.DocumentId),
+                SearchSortType.Recency => results.OrderByDescending(d => d.Reference.PublishDate).Select(d => d.Reference.Id).Distinct(),
+                SearchSortType.AuthorPopularity => results.OrderByDescending(d => d.AuthorPopularity).Select(d => d.Reference.Id).Distinct(),
                 _ => throw new ArgumentOutOfRangeException(nameof(sortType), sortType, null)
             };
 
@@ -135,6 +136,23 @@ namespace EasyCiteLib.Repository
                         AuthorPopularity = Return.As<double>("max(a.popularity)")
                     });
             }
+        }
+
+        public async Task<List<string>> AutoCompleteKeywordsAsync(string term, int resultsCount)
+        {
+            using var client = _graphClientFactory.Create();
+
+            await client.ConnectAsync();
+
+            var query = client.Cypher
+                .Match("(k:Keyword)")
+                .Where("k.keyword STARTS WITH {term}")
+                .WithParam("term", term)
+                .Return(() => Return.As<string>("k.keyword"))
+                .OrderBy("k.keyword")
+                .Limit(resultsCount);
+
+            return (await query.ResultsAsync).ToList();
         }
 
         class ReferenceResult

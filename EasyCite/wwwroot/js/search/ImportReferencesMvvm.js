@@ -1,5 +1,6 @@
 ﻿function ImportReferencesMvvm() {
     const self = this;
+    self.IsLoading = ko.observable(false);
 
     self.ModalElement = ko.observable();
     self.SearchElement = ko.observable();
@@ -15,17 +16,22 @@
     
     self.Show = () => {
         // reset state information
-        self.ResetToSearchMode();
+        self.ResetToSearchMode(true);
         
-        $(self.ModalElement()).modal('show');
+        $(self.ModalElement())
+            .modal('show')
+            .find('.ieee-search').focus();
     };
     
-    self.ResetToSearchMode = () => {
+    self.ResetToSearchMode = (clearSearchText) => {
+        self.IsLoading(false);
         self.ChooseFileLabel('Upload a .bib file...');
         self.IsResultMode(false);
-        self.SearchText('');
         self.FileElement().value = '';
         self.SearchResults.removeAll();
+        if (clearSearchText === true) {
+            self.SearchText('');
+        }
     };
     
     self.UpdateWithResults = results => {
@@ -34,9 +40,11 @@
         results.map(r => new SearchResultVm(r)).forEach(function (r) {
             self.SearchResults.push(r);
         });
+        self.IsLoading(false);
     };
     
-    self.SubmitSearch = () => {        
+    self.SubmitSearch = () => {
+        self.IsLoading(true);
         $.get(self.SearchByNameUrl(), { term: self.SearchText() }).done(self.UpdateWithResults);
     };
     

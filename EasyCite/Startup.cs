@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -50,6 +53,17 @@ namespace EasyCite
             services.AddDbContext<EasyCiteDbContext>();
             services.AddTransient(typeof(IGenericDataContextAsync<>), typeof(GenericDataContextAsync<>));
 
+            services.AddHttpContextAccessor();
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.AddScoped<IUrlHelper>(x =>
+            {
+                var actionContext = x.GetRequiredService<IActionContextAccessor>().ActionContext;
+                var factory = x.GetRequiredService<IUrlHelperFactory>();
+                return factory.GetUrlHelper(actionContext);
+            });
+            services.AddHttpClient();
+            services.AddMemoryCache();
+
             // Google login configuration
             services
                 .AddAuthentication(options =>
@@ -81,10 +95,6 @@ namespace EasyCite
                         ctx.Identity.AddClaim(new Claim(ClaimTypes.Sid, userId.ToString()));
                     };
                 });
-
-            services.AddHttpContextAccessor();
-            services.AddHttpClient();
-            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -110,7 +120,7 @@ namespace EasyCite
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}");
             });
         }
 

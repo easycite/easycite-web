@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Helpers;
+using EasyCiteLib.Interface.Projects;
 using EasyCiteLib.Interface.Search;
 using EasyCiteLib.Models;
 using EasyCiteLib.Models.Search;
@@ -15,13 +18,19 @@ namespace EasyCiteLib.Implementation.Search
     {
         private readonly IGenericDataContextAsync<Project> _projectDataContext;
         private readonly IGetCurrentUserProcessor _getCurrentUserProcessor;
+        private readonly IGetProjectForUserProcessor _getProjectForUserProcessor;
+        private readonly IGetDocumentProcessor _getDocumentProcessor;
 
         public LoadSearchProcessor(
             IGenericDataContextAsync<Project> projectDataContext,
-            IGetCurrentUserProcessor getCurrentUserProcessor)
+            IGetCurrentUserProcessor getCurrentUserProcessor,
+            IGetProjectForUserProcessor getProjectForUserProcessor,
+            IGetDocumentProcessor getDocumentProcessor)
         {
             _projectDataContext = projectDataContext;
             _getCurrentUserProcessor = getCurrentUserProcessor;
+            _getProjectForUserProcessor = getProjectForUserProcessor;
+            _getDocumentProcessor = getDocumentProcessor;
         }
         public async Task<Results<SearchVm>> LoadAsync(int projectId)
         {
@@ -33,15 +42,33 @@ namespace EasyCiteLib.Implementation.Search
                 }
             };
 
-            var userId = await _getCurrentUserProcessor.GetUserIdAsync();
-            var project = await _projectDataContext.DataSet
-                .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
+            var projectResults = await _getProjectForUserProcessor.GetAsync(projectId);
 
-            if (project == null)
+            if (projectResults.HasProblem)
             {
-                results.AddError("Cannot find your project");
+                results.Merge(projectResults);
                 return results;
             }
+
+            // Add loaded references, then pending
+            var loadedDocuments = await _getDocumentProcessor.GetDocumentsAsync(projectResults.Data.ProjectReferences
+                .Where(pr => pr.IsPending == false)
+                .Select(pr => pr.ReferenceId));
+
+            results.Data.References.AddRange(loadedDocuments.Select(d => new ReferenceVm
+            {
+                Id = d.Id,
+                Title = d.Title,
+                IsPending = false,
+                Abstract = d.Abstract
+            }));
+
+            results.Data.References.AddRange(projectResults.Data.ProjectReferences
+                .Where(pr => pr.IsPending == true)
+                .Select(pr => new ReferenceVm{
+                    Id = pr.ReferenceId,
+                    IsPending = true
+                }));
 
             // Sort options
             results.Data.DefaultSortOption = SearchSortType.PageRank;
@@ -58,7 +85,8 @@ namespace EasyCiteLib.Implementation.Search
                 results.Data.SearchDepths.Add(new DropdownOption<SearchDepth>
                 {
                     Text = searchDepth.GetDescription(),
-                    Value = searchDepth
+                    Value = searchDepth,
+                    HelpText = searchDepth.GetHelpText()
                 });
 
             return results;
