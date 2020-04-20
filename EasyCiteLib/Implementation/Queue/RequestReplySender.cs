@@ -7,7 +7,7 @@ using Microsoft.Azure.ServiceBus.Core;
 
 namespace EasyCiteLib.Implementation.Queue
 {
-    public class RequestReplySender
+    public class RequestReplySender : IAsyncDisposable
     {
         private readonly ConcurrentDictionary<string, TaskCompletionSource<Message>> _pendingRequests = new ConcurrentDictionary<string, TaskCompletionSource<Message>>();
 
@@ -68,6 +68,11 @@ namespace EasyCiteLib.Implementation.Queue
         private static Task ExceptionReceivedHandler(ExceptionReceivedEventArgs arg)
         {
             return Task.CompletedTask;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await Task.WhenAll(_sender.CloseAsync(), _receiver.CloseAsync());
         }
     }
 }
