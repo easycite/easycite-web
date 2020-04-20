@@ -28,6 +28,7 @@
                         <div class="custom-file">
                             <input type="file" accept=".bib" class="custom-file-input" id="uploadBibFile" data-bind="event: { change: FileChanged }, element: FileElement" />
                             <label class="custom-file-label" for="uploadBibFile" data-bind="text: ChooseFileLabel">Choose File</label>
+                            <small><em>This will only import references that can be found on IEEE</em></small>
                         </div>
                     </div>
                     <div data-bind="if: IsResultMode">
