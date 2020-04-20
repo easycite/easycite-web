@@ -31,10 +31,10 @@ namespace EasyCiteLib.Implementation.Search
 
             List<Document> documents = await _documentContext.GetDocumentsAsync(resultIds);
 
-            if (searchData.SearchTags.Count == 0)
+            if (searchData.AnyTags.Count == 0 && searchData.AllTags.Count == 0)
                 return documents;
             
-            return documents.Where(d => d.Keywords.Any(searchData.SearchTags.Contains)).ToList();
+            return documents.Where(d => d.Keywords?.Count > 0 && searchData.AllTags.All(k => d.Keywords.Contains(k)) && (searchData.AnyTags.Count == 0 || searchData.AnyTags.Any(k => d.Keywords.Contains(k)))).ToList();
         }
     }
 }

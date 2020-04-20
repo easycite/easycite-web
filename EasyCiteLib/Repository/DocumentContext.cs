@@ -138,6 +138,23 @@ namespace EasyCiteLib.Repository
             }
         }
 
+        public async Task<List<string>> AutoCompleteKeywordsAsync(string term, int resultsCount)
+        {
+            using var client = _graphClientFactory.Create();
+
+            await client.ConnectAsync();
+
+            var query = client.Cypher
+                .Match("(k:Keyword)")
+                .Where("k.keyword STARTS WITH {term}")
+                .WithParam("term", term)
+                .Return(() => Return.As<string>("k.keyword"))
+                .OrderBy("k.keyword")
+                .Limit(resultsCount);
+
+            return (await query.ResultsAsync).ToList();
+        }
+
         class ReferenceResult
         {
             [JsonProperty("id")]

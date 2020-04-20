@@ -74,6 +74,7 @@ function SearchResultsMvvm(results) {
     self.RemoveReferenceUrl = ko.observable(ApiUrls['RemoveReference']);
     self.PendingReferencesStatusUrl = ko.observable(ApiUrls['PendingReferencesStatus']);
     self.HideResultUrl = ko.observable(ApiUrls['HideResult']);
+    self.AutoCompleteKeywordsUrl = ko.observable(ApiUrls['AutoCompleteKeywords']);
 
     // ---------- Functions ---------- //
     self.LoadReferences = function (references) {        
@@ -129,18 +130,21 @@ function SearchResultsMvvm(results) {
             if (self.IsLoading() === true) return;
             self.IsLoading(true);
         }
+
+        const tags = self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s);
+        const quotePattern = /^(["'])(.*)\1$/;
         
+        const allTags = tags.map(s => quotePattern.exec(s)).filter(s => s).map(s => s[2]);
+        const anyTags = tags.filter(s => !quotePattern.test(s));
+
         var data = {
             projectId: self.ProjectId(),
             searchData: {
                 PageNumber: self.PageNumber(),
                 ItemsPerPage: self.ItemsPerPage(),
                 SearchByIds: self.References().map(element => element.Id()),
-                SearchTags: self.SearchTags()
-                    .trim()
-                    .split(',')
-                    .map(s => s.trim())
-                    .filter(s => s),
+                AllTags: allTags,
+                AnyTags: anyTags,
                 ForceNoCache: self.IsOutOfSync(),
                 SearchSortType: self.SelectedSearchType(),
                 SearchDepth: self.SearchDepth()
@@ -348,3 +352,59 @@ function ResultVm(result) {
         self.IsExpanded(!self.IsExpanded());
     };
 }
+
+ko.bindingHandlers.keywordAutoComplete = {
+    init: (element, valueAccessor, allBindings, viewModel) => {
+        let split = function (val) {
+            return val.split(/,\s*/);
+        };
+        let extractLast = function (term) {
+            return split(term).pop();
+        };
+        
+        const textObservable = valueAccessor();
+
+        $(element).on('keydown', function (e) {
+            if (e.keyCode === $.ui.keyCode.TAB && $(this).autocomplete('instance').menu.active) {
+                e.preventDefault();
+            }
+        }).autocomplete({
+            source: function (req, rsp) {
+                const term = extractLast(req.term).trim().replace(/['"]/g, '');
+                
+                if (!term)
+                    return;
+                
+                $.get(viewModel.AutoCompleteKeywordsUrl(), {
+                    term: extractLast(req.term).trim().replace(/['"]/g, ''),
+                    resultsCount: 10
+                }).done(function (data) {
+                    rsp(data.Data);
+                });
+            },
+            search: function () {
+                const term = extractLast(this.value);
+                if (!term.length) {
+                    return false;
+                }
+            },
+            focus: function () {
+                return false;
+            },
+            select: function (event, ui) {
+                const terms = split(this.value);
+                const popped = terms.pop().trim().substr(0, 1);
+                if (popped === '"' || popped === '\'') {
+                    terms.push(popped + ui.item.value + popped);
+                }
+                else {
+                    terms.push(ui.item.value);
+                }
+                terms.push('');
+                this.value = terms.join(', ');
+                textObservable(this.value);
+                return false;
+            }
+        });
+    }
+};

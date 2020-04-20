@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Search;
 using EasyCiteLib.Interface.Search.Export;
+using EasyCiteLib.Models;
 using EasyCiteLib.Models.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +23,7 @@ namespace EasyCite.Controllers
         private readonly IBibFileProcessor _bibFileProcessor;
         private readonly IGetBibStreamProcessor _getBibStreamProcessor;
         private readonly IGetSearchExportDataProcessor _getSearchExportDataProcessor;
+        private readonly IKeywordAutoCompleteProcessor _keywordAutoCompleteProcessor;
 
         public SearchController(
             IProjectReferencesProcessor projectReferencesProcessor,
@@ -30,7 +32,8 @@ namespace EasyCite.Controllers
             IDocumentSearchProcessor documentSearchProcessor,
             IBibFileProcessor bibFileProcessor,
             IGetBibStreamProcessor getBibStreamProcessor,
-            IGetSearchExportDataProcessor getSearchExportDataProcessor)
+            IGetSearchExportDataProcessor getSearchExportDataProcessor,
+            IKeywordAutoCompleteProcessor keywordAutoCompleteProcessor)
         {
             _projectReferencesProcessor = projectReferencesProcessor;
             _searchForArticlesProcessor = searchForArticlesProcessor;
@@ -39,6 +42,7 @@ namespace EasyCite.Controllers
             _bibFileProcessor = bibFileProcessor;
             _getBibStreamProcessor = getBibStreamProcessor;
             _getSearchExportDataProcessor = getSearchExportDataProcessor;
+            _keywordAutoCompleteProcessor = keywordAutoCompleteProcessor;
         }
 
         public async Task<IActionResult> Index(int? projectId)
@@ -80,7 +84,9 @@ namespace EasyCite.Controllers
         [HttpPost]
         public async Task<JsonResult> Search(int projectId, SearchData searchData)
         {
-            searchData.SearchTags?.RemoveAll(string.IsNullOrWhiteSpace);
+            searchData.AnyTags?.RemoveAll(string.IsNullOrWhiteSpace);
+            searchData.AllTags?.RemoveAll(string.IsNullOrWhiteSpace);
+            
             return Json(await _searchForArticlesProcessor.SearchAsync(projectId, searchData));
         }
 
@@ -109,6 +115,13 @@ namespace EasyCite.Controllers
         public async Task<JsonResult> HideResult(int projectId, string documentId)
         {
             var results = await _projectReferencesProcessor.HideResultAsync(projectId, documentId);
+
+            return Json(results);
+        }
+
+        public async Task<ActionResult> AutoCompleteKeywords(string term, int resultsCount)
+        {
+            Results<List<string>> results = await _keywordAutoCompleteProcessor.AutoCompleteKeywordsAsync(term, resultsCount);
 
             return Json(results);
         }
