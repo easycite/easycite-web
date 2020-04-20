@@ -48,15 +48,21 @@ function ExportReferencesModal(obsProjectId) {
     self.CitationElement = ko.observable();
     self.CopyText = ko.observable('Copy');
     self.CopyClicked = ko.observable(false);
-    self.CopyRichText = (data, event) => {
+    self.CopyRichText = () => {
         if(self.IsLoading() === true) return;
 
-        let copyText = '';
-        for (let i = 0; i < self.RichTextCitations().length; i++)
-            copyText += self.RichTextCitations()[i] + "\n\n";
+        const copyText = self.RichTextCitations().join('<br><br>');
+        console.log(copyText);
         
-        // This is flipping amazing
-        navigator.clipboard.writeText(copyText);
+        function listener(e) {
+            e.clipboardData.setData('text/html', copyText);
+            e.clipboardData.setData('text/plain', copyText);
+            e.preventDefault();
+        }
+        
+        document.addEventListener('copy', listener);
+        document.execCommand('copy');
+        document.removeEventListener('copy', listener);
 
         // Animation
         self.CopyText('Copied');
