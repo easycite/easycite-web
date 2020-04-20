@@ -16,20 +16,22 @@
     
     self.Show = () => {
         // reset state information
-        self.ResetToSearchMode();
+        self.ResetToSearchMode(true);
         
         $(self.ModalElement())
             .modal('show')
             .find('.ieee-search').focus();
     };
     
-    self.ResetToSearchMode = () => {
+    self.ResetToSearchMode = (clearSearchText) => {
         self.IsLoading(false);
         self.ChooseFileLabel('Upload a .bib file...');
         self.IsResultMode(false);
-        self.SearchText('');
         self.FileElement().value = '';
         self.SearchResults.removeAll();
+        if (clearSearchText === true) {
+            self.SearchText('');
+        }
     };
     
     self.UpdateWithResults = results => {
