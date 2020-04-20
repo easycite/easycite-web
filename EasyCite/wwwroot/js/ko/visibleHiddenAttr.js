@@ -5,7 +5,7 @@ ko.bindingHandlers['visibleAttr'] = {
         if (value && !isCurrentlyVisible)
             element.removeAttribute('hidden');
         else if ((!value) && isCurrentlyVisible)
-            element.addAttribute('hidden');
+            element.setAttribute('hidden', '');
     }
 };
 
