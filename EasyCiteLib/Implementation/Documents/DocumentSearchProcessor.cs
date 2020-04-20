@@ -18,6 +18,12 @@ namespace EasyCiteLib.Implementation.Documents
         private const string _searchUri = "/rest/search";
         private const string _searchUriReferrerFormat = "/search/searchresult.jsp?newsearch=true&queryText={0}";
 
+        private const string _citationFormatUriFormat = "/rest/search/citation/format?recordsId={0}&download-format={1}&lite=true";
+        private const string _citationFormatUriReferrerFormat = "/document/{0}";
+
+        private const string _plainTextFormat = "download-ascii";
+        private const string _bibTexFormat = "download-bibtex";
+
         private readonly HttpClient _httpClient;
 
         public DocumentSearchProcessor(IHttpClientFactory httpClientFactory)
@@ -88,8 +94,34 @@ namespace EasyCiteLib.Implementation.Documents
             return results.Results.FirstOrDefault(r => r.Title.Trim().Equals(name.Trim(), StringComparison.CurrentCultureIgnoreCase));
         }
 
-        public Task<string> GetPlainTextCitationAsync(string documentId) => throw new NotImplementedException();
-        public Task<string> GetBibTexCitationAsync(string documentId) => throw new NotImplementedException();
+        public Task<string> GetPlainTextCitationAsync(string documentId) => GetCitationAsync(documentId, _plainTextFormat);
+
+        public Task<string> GetBibTexCitationAsync(string documentId) => GetCitationAsync(documentId, _bibTexFormat);
+
+        async Task<string> GetCitationAsync(string documentId, string format)
+        {
+            string requestUri = _baseUri + string.Format(_citationFormatUriFormat, documentId, format);
+            string referrerUri = _baseUri + string.Format(_citationFormatUriReferrerFormat, documentId);
+            
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri)
+            {
+                Headers =
+                {
+                    Referrer = new Uri(referrerUri)
+                }
+            };
+            
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
+            
+            var stream = await response.Content.ReadAsStreamAsync();
+
+            using var streamReader = new StreamReader(stream);
+            using var jsonReader = new JsonTextReader(streamReader);
+
+            JObject obj = await JObject.LoadAsync(jsonReader);
+
+            return obj["data"].Value<string>();
+        }
 
         class SearchRequest
         {
