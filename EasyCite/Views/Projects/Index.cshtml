@@ -1,6 +1,8 @@
 @section scripts {
     <script src="~/lib/knockout-validation/knockout.validation.min.js"></script>
     <script src="~/js/event-handler.js"></script>
+    <script src="~/js/ko/element.js"></script>
+    <script src="~/js/ko/confirmModal.js"></script>
     <script src="~/js/projects/ProjectsMvvm.js"></script>
 }
 
@@ -30,6 +32,9 @@
         });
     </script>
 }
+
+<partial name="Components/ConfirmModal"/>
+<div data-bind="template: { name: DeleteConfirmModal.TemplateName, data: DeleteConfirmModal }"></div>
 
 <script type="text/html" id="error-message--template">
     <div data-bind="text: field.error" class="invalid-feedback"></div>

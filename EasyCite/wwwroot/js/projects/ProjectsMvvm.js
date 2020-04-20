@@ -28,7 +28,7 @@ function ProjectsMvvm() {
     self.OnNewProjectClick = () => {
         let newProject = new ProjectVm();
         newProject.IsEditing(true);
-        newProject.OnDeleteEvent.AddListener(self, self.OnDeleteCallback);
+        newProject.OnDeleteEvent.AddListener(self, self.DeleteConfirmModal.Show);
         self.Projects.push(newProject);
     };
 
@@ -37,10 +37,22 @@ function ProjectsMvvm() {
 
     };
 
-    self.OnDeleteCallback = project => {
-        self.Projects.remove(project);
+    self.OnDeleteClick = project => {
+        $.post(ApiUrls['Delete'], { projectId: project.Id() }, results => {
+            if (self.HasException === true) return;
+            
+            self.Projects.remove(project);
+        }).always(() => {
+            self.IsLoading(false);
+        });
+        
     };
 
+    self.DeleteConfirmModal = new ConfirmModal({
+        Message: 'Are you sure you wish to delete this project?',
+        AcceptButtonCss: 'btn-danger',
+        OnAcceptCallback: self.OnDeleteClick
+    });
 
     self.Load = () => {
         if (self.IsLoading() === true) return;
@@ -56,7 +68,7 @@ function ProjectsMvvm() {
                 const project = new ProjectVm(projects[i]);
 
                 // Add event listeners here
-                project.OnDeleteEvent.AddListener(self, self.OnDeleteCallback);
+                project.OnDeleteEvent.AddListener(self, self.DeleteConfirmModal.Show);
 
                 self.Projects.push(project);
             }
@@ -139,20 +151,9 @@ function ProjectVm(project, obsProjects) {
         });
     };
 
+    
     self.OnDeleteClick = () => {
-        if (self.IsLoading() === true) return;
-        self.IsLoading(true);
-
-        // Add confirm modal
-
-        $.post(ApiUrls['Delete'], { projectId: self.Id() }, results => {
-            if (self.HasException === true) return;
-
-            self.OnDeleteEvent.NotifyListeners(self);
-        }).always(() => {
-            self.IsLoading(false);
-        });
-
+        self.OnDeleteEvent.NotifyListeners(self);
     };
 
     self.OnCancelClick = () => {
