@@ -18,7 +18,9 @@
         // reset state information
         self.ResetToSearchMode();
         
-        $(self.ModalElement()).modal('show');
+        $(self.ModalElement())
+            .modal('show')
+            .find('.ieee-search').focus();
     };
     
     self.ResetToSearchMode = () => {
