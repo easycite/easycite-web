@@ -124,9 +124,11 @@ function SearchResultsMvvm(results) {
         });
     };
 
-    self.Search = () => {
-        if (self.IsLoading() === true) return;
-        self.IsLoading(true);
+    self.Search = pageNumber => {
+        if(pageNumber === undefined) {
+            if (self.IsLoading() === true) return;
+            self.IsLoading(true);
+        }
         
         var data = {
             projectId: self.ProjectId(),
@@ -224,7 +226,7 @@ function SearchResultsMvvm(results) {
         self.PageNumber(Math.max(0, oldPage - 1));
         
         if(self.PageNumber() !== oldPage)
-            self.Search();
+            self.Search(self.PageNumber());
     };
 
     self.SearchNext = () => {
@@ -232,7 +234,7 @@ function SearchResultsMvvm(results) {
         self.PageNumber(Math.min(self.NumberOfPages() - 1, oldPage + 1));
         
         if(self.PageNumber() !== oldPage)
-            self.Search();
+            self.Search(self.PageNumber());
     };
 
     self.ImportReferencesModal = new ImportReferencesMvvm();
@@ -320,6 +322,7 @@ function ResultVm(result) {
     self.AuthorName = ko.observable(result.AuthorName);
     self.Conference = ko.observable(result.Conference);
     self.Abstract = ko.observable(result.Abstract);
+    self.Url = ko.pureComputed(() => 'https://ieeexplore.ieee.org/document/' + self.Id());
 
     self.IsAdded = ko.observable(false);
     self.AddButtonText = ko.pureComputed(() => self.IsAdded() ? 'Added' : 'Add');
