@@ -153,7 +153,7 @@ function SearchResultsMvvm(results) {
 
             data.Results.map(d => new ResultVm(d)).forEach(function (result) {
                 result.OnAddEvent.AddListener(self, self.OnReferenceAddCallback);
-                result.OnHideEvent.AddListener(self, self.OnHideResultCallback);
+                result.OnHideEvent.AddListener(self, self.ConfirmHideReferenceModal.Show);
                 self.SearchResults.push(result);
             });
             self.IsOutOfSync(false);
@@ -241,7 +241,7 @@ function SearchResultsMvvm(results) {
             self.IsOutOfSync(true);
         });
     });
-    
+
     self.OnHideResultCallback = result => {
         return $.post(self.HideResultUrl(), {
             projectId: self.ProjectId(),
@@ -253,6 +253,13 @@ function SearchResultsMvvm(results) {
             }
         });
     };
+
+    // Confirm Hide modal
+    self.ConfirmHideReferenceModal = new ConfirmModal({
+        Message: 'Are you sure you wish to hide this reference?',
+        AcceptButtonCss: 'btn-danger',
+        OnAcceptCallback: self.OnHideResultCallback
+    });
 
     self.Load().then(() => {
         return self.Search();

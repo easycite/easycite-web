@@ -1,0 +1,21 @@
+<script type="text/html" id="confirm-modal--template">
+    <div class="modal" tabindex="-1" role="dialog" data-bind="element: Element">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-bind="text: Title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p data-bind="html: Message"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-dismiss="modal" data-bind="click: OnReject, text: RejectButtonText, class: RejectButtonCss"></button>
+                    <button type="button" class="btn" data-bind="click: OnAccept, text: AcceptButtonText, class: AcceptButtonCss"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>

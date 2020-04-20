@@ -14,17 +14,19 @@ namespace EasyCiteLib.Implementation.Search.Export
     {
         private readonly IGetDocumentProcessor _getDocumentProcessor;
         private readonly IGetProjectForUserProcessor _getProjectForUserProcessor;
-
+        private readonly IDocumentSearchProcessor _documentSearchProcessor;
         private Dictionary<string, int> Keys = new Dictionary<string, int>();
 
         public GetBibStreamProcessor(
             IGetDocumentProcessor getDocumentProcessor,
-            IGetProjectForUserProcessor getProjectForUserProcessor)
+            IGetProjectForUserProcessor getProjectForUserProcessor,
+            IDocumentSearchProcessor documentSearchProcessor)
         {
             _getDocumentProcessor = getDocumentProcessor;
             _getProjectForUserProcessor = getProjectForUserProcessor;
+            _documentSearchProcessor = documentSearchProcessor;
         }
-        public async Task<Results<FileData>> GetAsync(int projectId, string filename = null)
+        public async Task<Results<FileData>> GetAsync(int projectId)
         {
             var results = new Results<FileData>();
             var projectResults = await _getProjectForUserProcessor.GetAsync(projectId);
@@ -38,14 +40,16 @@ namespace EasyCiteLib.Implementation.Search.Export
             var documentIds = projectResults.Data.ProjectReferences
                 .Select(pr => pr.ReferenceId);
 
+            var bibCitations = projectResults.Data.ProjectReferences
+                .Select(async pr => await _documentSearchProcessor.GetBibTexCitationAsync(pr.ReferenceId));
+
             // Actually get documents
             var bibFile = new StringBuilder();
-            foreach (var doc in await _getDocumentProcessor.GetDocumentsAsync(documentIds))
-                bibFile.Entry(EntryTypes.Misc, doc, ref Keys);
+            foreach (var bibCitation in bibCitations)
+                bibFile.AppendLine(await bibCitation);
             
             results.Data.Content = Encoding.UTF8.GetBytes(bibFile.ToString());
-            results.Data.Filename = string.IsNullOrWhiteSpace(filename) ? $"{projectResults.Data.Name}-references" : filename;
-            results.Data.Filename += ".bib";
+            results.Data.Filename = "references.bib";
             return results;
         }
     }

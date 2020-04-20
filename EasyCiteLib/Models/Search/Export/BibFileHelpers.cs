@@ -28,7 +28,7 @@ namespace EasyCiteLib.Models.Search.Export
             var authors = string.Join(" and ", document.Authors.Select(a => a.Name.ToLowerInvariant())); // Get authors
             stringBuilder.Field(FieldTypes.Author, authors);
             stringBuilder.Field(FieldTypes.Month, document.PublishDate.ToString("MMMM")); // Full month
-            stringBuilder.Field(FieldTypes.Year, document.PublishDate.ToString("YYYY")); // Full year
+            stringBuilder.Field(FieldTypes.Year, document.PublishDate.ToString("yyyy")); // Full year
 
             // Add other information to citation
             var note = new StringBuilder();

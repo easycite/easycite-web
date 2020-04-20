@@ -21,6 +21,7 @@ namespace EasyCite.Controllers
         private readonly IDocumentSearchProcessor _documentSearchProcessor;
         private readonly IBibFileProcessor _bibFileProcessor;
         private readonly IGetBibStreamProcessor _getBibStreamProcessor;
+        private readonly IGetSearchExportDataProcessor _getSearchExportDataProcessor;
 
         public SearchController(
             IProjectReferencesProcessor projectReferencesProcessor,
@@ -28,7 +29,8 @@ namespace EasyCite.Controllers
             ILoadSearchProcessor loadSearchProcessor,
             IDocumentSearchProcessor documentSearchProcessor,
             IBibFileProcessor bibFileProcessor,
-            IGetBibStreamProcessor getBibStreamProcessor)
+            IGetBibStreamProcessor getBibStreamProcessor,
+            IGetSearchExportDataProcessor getSearchExportDataProcessor)
         {
             _projectReferencesProcessor = projectReferencesProcessor;
             _searchForArticlesProcessor = searchForArticlesProcessor;
@@ -36,6 +38,7 @@ namespace EasyCite.Controllers
             _documentSearchProcessor = documentSearchProcessor;
             _bibFileProcessor = bibFileProcessor;
             _getBibStreamProcessor = getBibStreamProcessor;
+            _getSearchExportDataProcessor = getSearchExportDataProcessor;
         }
 
         public async Task<IActionResult> Index(int? projectId)
@@ -111,14 +114,15 @@ namespace EasyCite.Controllers
         }
 
         #region Export
-        public async Task<IActionResult> DownloadBibFile(int projectId, string filename = null)
+        public async Task<IActionResult> DownloadBibFile(int projectId)
         {
-            var results = await _getBibStreamProcessor.GetAsync(projectId, filename);
+            var results = await _getBibStreamProcessor.GetAsync(projectId);
             return File(results.Data.Content, "text/plain", results.Data.Filename);
         }
 
-        public async Task<JsonResult> GetExportData(int projectId) {
-            return Json(new object{});
+        public async Task<JsonResult> GetExportData(int projectId)
+        {
+            return Json(await _getSearchExportDataProcessor.GetAsync(projectId));
         }
         #endregion
     }

@@ -22,8 +22,12 @@ for details on configuring this project to bundle and minify static web assets. 
     table-layout: fixed;
 }
 
-/* Loader */
+.hanging-indent {
+    padding-left: 3rem;
+    text-indent: -3rem;
+}
 
+/* Loader */
 .loader {
     position: absolute;
     left: 0;
@@ -36,7 +40,67 @@ for details on configuring this project to bundle and minify static web assets. 
     background-color: rgba(0, 0, 0, .6);
 }
 
+.loader[hidden] {
+    display: none !important;
+}
+
+.loader.inline-loader {
+    position: relative;
+    background-color: inherit;
+}
+
 .loader .spinner-border {
-    width: 6rem;
-    height: 6rem;
+    width: 3rem;
+    height: 3rem;
+}
+
+.animated {
+    transition: all ease;
+}
+
+.btn.bounceIn {
+    -webkit-animation-name: shake;
+    -webkit-animation-duration: .75s;
+    animation-name: shake;
+    animation-duration: .75s;
+}
+
+@keyframes shake {
+    from, 20%, 40%, 60%, 80%, to {
+        -webkit-animation-timing-function: ease;
+        animation-timing-function: ease;
+    }
+
+    0% {
+        opacity: 0;
+        -webkit-transform: scale3d(0.3, 0.3, 0.3);
+        transform: scale3d(0.3, 0.3, 0.3);
+    }
+
+    20% {
+        -webkit-transform: scale3d(1.1, 1.1, 1.1);
+        transform: scale3d(1.1, 1.1, 1.1);
+    }
+
+    40% {
+        -webkit-transform: scale3d(0.9, 0.9, 0.9);
+        transform: scale3d(0.9, 0.9, 0.9);
+    }
+
+    60% {
+        opacity: 1;
+        -webkit-transform: scale3d(1.03, 1.03, 1.03);
+        transform: scale3d(1.03, 1.03, 1.03);
+    }
+
+    80% {
+        -webkit-transform: scale3d(0.97, 0.97, 0.97);
+        transform: scale3d(0.97, 0.97, 0.97);
+    }
+
+    to {
+        opacity: 1;
+        -webkit-transform: scale3d(1, 1, 1);
+        transform: scale3d(1, 1, 1);
+    }
 }

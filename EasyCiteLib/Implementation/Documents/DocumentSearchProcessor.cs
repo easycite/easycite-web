@@ -18,7 +18,7 @@ namespace EasyCiteLib.Implementation.Documents
         private const string _searchUri = "/rest/search";
         private const string _searchUriReferrerFormat = "/search/searchresult.jsp?newsearch=true&queryText={0}";
 
-        private const string _citationFormatUriFormat = "/rest/search/citation/format?recordsId={0}&download-format={1}&lite=true";
+        private const string _citationFormatUriFormat = "/rest/search/citation/format?recordIds={0}&download-format={1}&lite=true";
         private const string _citationFormatUriReferrerFormat = "/document/{0}";
 
         private const string _plainTextFormat = "download-ascii";

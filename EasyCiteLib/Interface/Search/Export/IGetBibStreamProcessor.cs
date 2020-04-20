@@ -5,6 +5,6 @@ namespace EasyCiteLib.Interface.Search.Export
 {
     public interface IGetBibStreamProcessor
     {
-        Task<Results<FileData>> GetAsync(int projectId, string filename = null);
+        Task<Results<FileData>> GetAsync(int projectId);
     }
 }

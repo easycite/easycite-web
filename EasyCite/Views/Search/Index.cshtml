@@ -11,9 +11,10 @@
     <script src="~/js/ko/slideVisible.js"></script>
     <script src="~/js/ko/enterKey.js"></script>
     <script src="~/js/ko/range.js"></script>
-    <script src="~/js/ko/dropdown.js"></script>
     <script src="~/js/ko/element.js"></script>
     <script src="~/js/ko/loader.js"></script>
+    <script src="~/js/ko/dropdown.js"></script>
+    <script src="~/js/ko/confirmModal.js"></script>
     <script src="~/js/ko/visibleHiddenAttr.js"></script>
 
     <script src="~/js/search/SearchResultsMvvm.js"></script>
@@ -35,6 +36,7 @@
             self['PendingReferencesStatus'] = '@Url.Action("PendingReferencesStatus")';
             self['HideResult'] = '@Url.Action("HideResult")';
             self['DownloadBibFile'] = '@Url.Action("DownloadBibFile")';
+            self['GetExportData'] = '@Url.Action("GetExportData")';
         }();
         var mvvm;
         $(() => {
@@ -47,6 +49,13 @@
         });
     </script>
 }
+
+@* Components *@
+<partial name="Components/Dropdown" />
+<partial name="Components/Range" />
+<partial name="Components/ConfirmModal" />
+
+<div data-bind="template: { name: ConfirmHideReferenceModal.TemplateName, data: ConfirmHideReferenceModal }"></div>
 
 <div class="search-results container" data-bind="loader: IsLoading">
     @* <div class="loader d-flex justify-content-center align-items-center">
@@ -109,7 +118,6 @@
                 </div>
             </div>
             
-
             <div data-bind="visibleAttr: NotHasSearchResults" class="text-center text-secondary font-italic">
                 <hr />
                 There are no search results at this time.
@@ -144,34 +152,6 @@
     </div>
 </div>
 
-@* Templates *@
-<template id="dropdown--template">
-    <div class="dropdown d-flex">
-        <button class="btn btn-secondary dropdown-toggle flex-fill"
-            type="button" 
-            id="dropdownMenuButton" 
-            data-toggle="dropdown" 
-            aria-haspopup="true" 
-            aria-expanded="false"
-            data-bind="text: ButtonText">
-        </button>
-        <div class="dropdown-menu" 
-            aria-labelledby="dropdownMenuButton"
-            data-bind="foreach: Options">
-            <a class="dropdown-item" 
-                href="#"
-                data-bind="text: OptionText, click: OnClick"></a>
-        </div>
-    </div>
-</template>
-
-<template id="range--template">
-    <input type="range" class="custom-range" data-bind="
-        attr: { min: Min, max: Max, step: Step },
-        textInput: Value">
-    <label>Search Depth: <span data-bind="text: Text"></span></label>
-</template>
-
 <div data-bind="template: { name: 'import-references-modal', data: ImportReferencesModal } "></div>
 <div data-bind="template: { name: 'export-references--modal', data: ExportReferencesModal } "></div>
 
@@ -179,66 +159,36 @@
 
 <script type="text/html" id="export-references--modal">
     <div class="modal" role="dialog" tabindex="-1" data-bind="element: Element">
-        <div class="modal-dialog modal-dialog-centered" role="document" data-bind="css: { 'modal-lg': IsLargeModal }">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
-                <div class="modal-header border-bottom-0 justify-content-between">
+                <div class="modal-header">
                     <h5 class="modal-title">Export</h5>
-                    <nav>
-                        <div class="nav nav-pills" role="tablist">
-                            <a 
-                                data-bind="click: ActivateBibTab"
-                                class="nav-item nav-link active" 
-                                id="export--nav-bib-tab" 
-                                data-toggle="pill" 
-                                href="#export--bib" 
-                                role="tab" 
-                                aria-controls="export--nav-bib" 
-                                aria-selected="true">.bib</a>
-                            <a 
-                                data-bind="click: ActivateApaTab"
-                                class="nav-item nav-link" 
-                                id="export--nav-apa-tab" 
-                                data-toggle="pill" 
-                                href="#export--apa" 
-                                role="tab" 
-                                aria-controls="export--nav-apa" 
-                                aria-selected="false">APA</a>
-                        </div>
-                    </nav>
-                    <button type="button" class="close mx-0 mr-n3" data-dismiss="modal">
+                    <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>    
                 </div>
                 <div class="modal-body">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade show active" id="export--bib" role="tabpanel" aria-labelledby="export--nav-bib-tab">
-                                        <label>Custom file name</label>
-                                        <div class="input-group">
-                                            <input type="text"
-                                                class="form-control" 
-                                                aria-label="Custom File Name"
-                                                data-bind="value: Filename">
-                                            <div class="input-group-append">
-                                                <a type="button" class="btn btn-primary" data-bind="attr: { href: BibDownloadUrl }, click: BibDownloadOnClick" download>
-                                                    Download
-                                                    <i class="fas fa-download"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade" id="export--apa" role="tabpanel" aria-labelledby="export--nav-apa-tab">
-                                        rich text
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                        </div>
+                    <blockquote data-bind="foreach: RichTextCitations, 
+                        element: CitationElement,
+                        inlineLoader: IsLoading">
+                        <p data-bind="html: $data" class="hanging-indent"></p>
+                    </blockquote>
+
+                    <hr>
+
+                    <div class="text-right">
+                        <button type="button" 
+                            class="btn btn-primary btn-sm animated" 
+                            data-bind="click: CopyRichText, css: { bounceIn: CopyClicked }, disable: IsLoading">
+
+                            <span data-bind="text: CopyText"></span>
+                            <i class="far fa-clipboard"></i>
+                        </button>
+                        <a type="button" class="btn btn-secondary btn-sm" data-bind="attr: { href: BibDownloadUrl }, click: BibDownloadOnClick" download>
+                            Download .bib
+                            <i class="fas fa-download"></i>
+                        </a>
                     </div>
-                    
                 </div>
             </div>
         </div>
