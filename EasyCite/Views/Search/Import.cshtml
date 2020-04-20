@@ -11,7 +11,7 @@
                 <div class="modal-body">
                     <div data-bind="hidden: IsResultMode">
                         <div class="input-group">
-                            <input type="text" class="form-control ieee-search" placeholder="Search IEEE..." data-bind="element: SearchElement, textInput: SearchText" />
+                            <input type="text" class="form-control ieee-search" placeholder="Search IEEE..." data-bind="element: SearchElement, textInput: SearchText, enterKey: SubmitSearch" />
                             <div class="input-group-append">
                                 <button type="button" class="btn btn-outline-primary" data-bind="click: SubmitSearch, enable: SearchText">
                                     <span data-bind="visible: IsLoading">
