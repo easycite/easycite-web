@@ -129,7 +129,7 @@
                         <a href="#" class="text-dark flex-shrink-0 pr-3"><i class="fas" data-bind="click: ToggleExpanded, class: ExpandIconClass"></i></a>
                         <a href="#" class="text-dark text-decoration-none flex-fill" data-bind="click: ToggleExpanded" style="min-width: 0;">
                             <div class="d-flex">
-                                <h5 class="d-inline text-truncate" data-bind="text: Title, attr: { title: Title }"></h5>
+                                <h5 class="d-inline" data-bind="text: Title, attr: { title: Title }, css: { 'text-truncate': IsExpanded() === false }"></h5>
                                 <span class="px-1">&ndash;</span>
                                 <span class="text-muted pr-2 flex-shrink-0" data-bind="text: PublishDate"></span>
                             </div>
