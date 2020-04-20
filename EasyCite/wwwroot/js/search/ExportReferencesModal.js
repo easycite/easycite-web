@@ -1,6 +1,6 @@
 const TabsEnum = Object.freeze({
     Bib: 1,
-    RichText: 2
+    APA: 2
 });
 
 function ExportReferencesModal(obsProjectId) {
@@ -34,7 +34,7 @@ function ExportReferencesModal(obsProjectId) {
     };
 
     self.ActivateBibTab = () => self.CurrentTab(TabsEnum.Bib);
-    self.ActivateRichTextTab = () => self.CurrentTab(TabsEnum.RichText);
+    self.ActivateApaTab = () => self.CurrentTab(TabsEnum.APA);
 
-    self.IsLargeModal = ko.pureComputed(() => self.CurrentTab() === TabsEnum.RichText);
+    self.IsLargeModal = ko.pureComputed(() => self.CurrentTab() === TabsEnum.APA);
 }

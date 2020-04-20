@@ -13,6 +13,8 @@
     <script src="~/js/ko/range.js"></script>
     <script src="~/js/ko/dropdown.js"></script>
     <script src="~/js/ko/element.js"></script>
+    <script src="~/js/ko/loader.js"></script>
+    <script src="~/js/ko/visibleHiddenAttr.js"></script>
 
     <script src="~/js/search/SearchResultsMvvm.js"></script>
     <script src="~/js/search/ImportReferencesMvvm.js"></script>
@@ -34,9 +36,9 @@
             self['HideResult'] = '@Url.Action("HideResult")';
             self['DownloadBibFile'] = '@Url.Action("DownloadBibFile")';
         }();
-
+        var mvvm;
         $(() => {
-            var mvvm = new SearchResultsMvvm(@Json.Serialize(Model));
+            mvvm = new SearchResultsMvvm(@Json.Serialize(Model));
             ko.applyBindings(mvvm);
             
             setInterval(function () {
@@ -46,13 +48,18 @@
     </script>
 }
 
-<div class="search-results container">
+<div class="search-results container" data-bind="loader: IsLoading">
+    @* <div class="loader d-flex justify-content-center align-items-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div> *@
     <div class="row">
         <div class="col-12 mb-3 order-xl-last col-xl-4 mb-xl-0">
             <div class="d-flex justify-content-between align-items-center bg-dark text-light p-2 px-3">
-                <a href="#" class="text-light" data-bind="click: ImportReferencesModal.Show"><i class="fas fa-upload"></i></a>
+                <a href="#" class="text-light btn btn-sm" data-bind="click: ImportReferencesModal.Show"><i class="fas fa-upload"></i></a>
                 References
-                <a href="#" class="text-light" data-bind="click: ExportReferencesModal.Show"><i class="fas fa-download"></i></a>
+                <a href="#" class="text-light btn btn-sm" data-bind="click: ShowExportModal, css: { disabled: HasReferences() === false }"><i class="fas fa-download"></i></a>
             </div>
             <div class="accordion" data-bind="foreach: References">
                 <div class="card p-2">
@@ -67,40 +74,47 @@
                 </div>
             </div>
 
-            <div data-bind="if: IsOutOfSync, class: IsOutOfSync" class="d-flex align-items-center justify-content-between py-2">
+            <div data-bind="css: { invisible: IsOutOfSync() === false }" class="d-flex align-items-center justify-content-between py-2 invisible">
                 <small><em>Your results are out of sync with your references.</em></small>
-                <button type="button" class="btn btn-primary" data-bind="click: SyncReferences">Sync</button>
+                <button type="button" class="btn btn-primary" data-bind="click: SyncReferences">
+                    Refresh
+                </button>
             </div>
         </div>
         <div class="col-12 col-xl-8 order-xl-first">
             <div class="row">
-                <h1 class="col-12 text-center">Results</h1>
-                <div class="col-12 d-flex justify-content-between">
-                    <div class="">
-                        <dropdown params="
-                            text: 'Sort Options', 
-                            value: SelectedSearchType,
-                            options: SearchTypes,
-                            optionsText: 'Text',
-                            optionsValue: 'Value'"></dropdown>
-                    </div>
-                    <div class="px-5 flex-fill text-center">
-                        <range params="
-                            config: SearchDepthConfig,
-                            options: SearchDepthOptions,
-                            value: SearchDepth
-                        "></range>
-                    </div>
-                    <div class="pt-1">
-                        <div class="input-group">
-                            <div class="input-group-prepend text-dark">
-                                <div class="input-group-text"><i class="fas fa-search"></i></div>
-                            </div>
-                            <input type="text" class="form-control" placeholder="Search" data-bind="textInput: SearchTags, enterKey: SyncReferences" />
+                <h1 class="col-12 text-center py-1">Results</h1>
+                <div class="col-3">
+                    <dropdown params="
+                        text: 'Sort Options', 
+                        value: SelectedSearchType,
+                        options: SearchTypes,
+                        optionsText: 'Text',
+                        optionsValue: 'Value'"></dropdown>
+                </div>
+                <div class="col text-center">
+                    <range params="
+                        config: SearchDepthConfig,
+                        options: SearchDepthOptions,
+                        value: SearchDepth
+                    "></range>
+                </div>
+                <div class="col-5 pt-1">
+                    <div class="input-group">
+                        <div class="input-group-prepend text-dark">
+                            <div class="input-group-text"><i class="fas fa-search"></i></div>
                         </div>
+                        <input type="text" class="form-control" placeholder="Search" data-bind="textInput: SearchTags, enterKey: SyncReferences" />
                     </div>
                 </div>
             </div>
+            
+
+            <div data-bind="visibleAttr: NotHasSearchResults" class="text-center text-secondary font-italic">
+                <hr />
+                There are no search results at this time.
+            </div>
+
             <div class="accordion" data-bind="foreach: SearchResults">
                 <div class="card p-2 border-left-0 border-right-0 rounded-0">
                     <div class="d-flex align-items-center">
@@ -118,12 +132,10 @@
                         <button type="button" class="btn btn-outline-secondary btn-sm mx-2 flex-shrink-0" title="Don't show this article again" data-bind="click: OnHideClick, disable: IsAdded"><i class="fas fa-eye-slash"></i></button>
                         <button type="button" class="btn btn-outline-primary btn-sm px-3 flex-shrink-0" data-bind="click: OnAddClick, disable: IsAdded, text: AddButtonText"></button>
                     </div>
-                    <div class="result-details small my-2" data-bind="slideVisible: IsExpanded, html: Abstract" style="display: none;">
-                        The circuit board manufacturing community is now ready to embrace the concept of moving probe in-circuit test systems, also known as Flying Probers. This is due not only to the ability of Flying Probers to eliminate the cost of fixturing, but also to their new ability to satisfy the overall test requirements. This opens up the opportunity to test a new class of boards that are not cost effective to test on fixture based systems, and were not able to be tested on previous Flying Probe test systems. Requirements such as prototype development, low to medium volume manufacturing, high net count boards, and field returns are examples of prime targets for Flying Probers. What then are the capabilities a user should look for in a Flying Prober that will insure its most effective overall use as a quick-turn around, highly flexible test tool? An attempt is made to answer this question.
-                    </div>
+                    <div class="result-details small my-2" data-bind="slideVisible: IsExpanded, html: Abstract" style="display: none;"></div>
                 </div>
             </div>
-            <div class="mt-3 text-center">
+            <div class="mt-3 text-center" data-bind="hiddenAttr: NotHasSearchResults">
                 <button type="button" class="btn btn-sm btn-secondary" data-bind="click: SearchPrevious, disable: PreviousIsDisabled">Previous</button>
                 <span class="mx-2 text-muted cursor-default"><span data-bind="text: PageNumberDisplay"></span> of <span data-bind="text: NumberOfPages"></span></span>
                 <button type="button" class="btn btn-sm btn-secondary" data-bind="click: SearchNext, disable: NextIsDisabled">Next</button>
@@ -134,8 +146,8 @@
 
 @* Templates *@
 <template id="dropdown--template">
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" 
+    <div class="dropdown d-flex">
+        <button class="btn btn-secondary dropdown-toggle flex-fill"
             type="button" 
             id="dropdownMenuButton" 
             data-toggle="dropdown" 
@@ -183,14 +195,14 @@
                                 aria-controls="export--nav-bib" 
                                 aria-selected="true">.bib</a>
                             <a 
-                                data-bind="click: ActivateRichTextTab"
+                                data-bind="click: ActivateApaTab"
                                 class="nav-item nav-link" 
-                                id="export--nav-rich-text-tab" 
+                                id="export--nav-apa-tab" 
                                 data-toggle="pill" 
-                                href="#export--rich-text" 
+                                href="#export--apa" 
                                 role="tab" 
-                                aria-controls="export--nav-rich-text" 
-                                aria-selected="false">Rich Text</a>
+                                aria-controls="export--nav-apa" 
+                                aria-selected="false">APA</a>
                         </div>
                     </nav>
                     <button type="button" class="close mx-0 mr-n3" data-dismiss="modal">
@@ -217,7 +229,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="tab-pane fade" id="export--rich-text" role="tabpanel" aria-labelledby="export--nav-rich-text-tab">
+                                    <div class="tab-pane fade" id="export--apa" role="tabpanel" aria-labelledby="export--nav-apa-tab">
                                         rich text
                                     </div>
                                 </div>

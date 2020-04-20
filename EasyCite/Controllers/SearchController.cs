@@ -116,6 +116,10 @@ namespace EasyCite.Controllers
             var results = await _getBibStreamProcessor.GetAsync(projectId, filename);
             return File(results.Data.Content, "text/plain", results.Data.Filename);
         }
+
+        public async Task<JsonResult> GetExportData(int projectId) {
+            return Json(new object{});
+        }
         #endregion
     }
 

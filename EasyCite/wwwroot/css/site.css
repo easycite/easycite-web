@@ -21,3 +21,22 @@ for details on configuring this project to bundle and minify static web assets. 
 .projects-table {
     table-layout: fixed;
 }
+
+/* Loader */
+
+.loader {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    min-width: 100%;
+    min-height: 100%;
+
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, .6);
+}
+
+.loader .spinner-border {
+    width: 6rem;
+    height: 6rem;
+}

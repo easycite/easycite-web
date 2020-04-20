@@ -7,5 +7,8 @@ namespace EasyCiteLib.Interface.Documents
     {
         Task<DocumentSearchResults> SearchByNameAsync(string query, int itemsPerPage = 10, int page = 1);
         Task<DocumentSearchResults.Article> GetByNameExactAsync(string name);
+
+        Task<string> GetPlainTextCitationAsync(string documentId);
+        Task<string> GetBibTexCitationAsync(string documentId);
     }
 }

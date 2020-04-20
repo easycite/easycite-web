@@ -1,5 +1,6 @@
 ﻿function ImportReferencesMvvm() {
     const self = this;
+    self.IsLoading = ko.observable(false);
 
     self.ModalElement = ko.observable();
     self.SearchElement = ko.observable();
@@ -21,6 +22,7 @@
     };
     
     self.ResetToSearchMode = () => {
+        self.IsLoading(false);
         self.ChooseFileLabel('Upload a .bib file...');
         self.IsResultMode(false);
         self.SearchText('');
@@ -34,9 +36,11 @@
         results.map(r => new SearchResultVm(r)).forEach(function (r) {
             self.SearchResults.push(r);
         });
+        self.IsLoading(false);
     };
     
-    self.SubmitSearch = () => {        
+    self.SubmitSearch = () => {
+        self.IsLoading(true);
         $.get(self.SearchByNameUrl(), { term: self.SearchText() }).done(self.UpdateWithResults);
     };
     

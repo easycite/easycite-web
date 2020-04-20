@@ -6,13 +6,15 @@ function SearchResultsMvvm(results) {
     self.ProjectId = ko.observable(results.Data.ProjectId);
     
     // References
-    self.References = ko.observableArray();
+    self.References = ko.observableArray([]);
+    self.HasReferences = ko.pureComputed(() => self.References().length > 0);
     for (let i = 0; i < results.Data.References.length; i++) {
         const reference = results.Data.References[i];
         self.References.push(new ReferenceVm(reference));
     }
 
     self.SearchResults = ko.observableArray();
+    self.NotHasSearchResults = ko.pureComputed(() => self.SearchResults().length <= 0);
     self.PageNumber = ko.observable(0);
     self.PageNumberDisplay = ko.pureComputed(() => self.PageNumber() + 1);
     self.ItemsPerPage = ko.observable(10); // TODO: make this configurable
@@ -20,6 +22,10 @@ function SearchResultsMvvm(results) {
 
     // Export Modal
     self.ExportReferencesModal = new ExportReferencesModal(self.ProjectId);
+    self.ShowExportModal = () => {
+        if(self.HasReferences() === true)
+            self.ExportReferencesModal.Show();
+    };
 
     // Search Depth
     self.SearchDepthOptions = ko.observableArray();
@@ -44,6 +50,7 @@ function SearchResultsMvvm(results) {
         const option = results.Data.SortOptions[i];
         self.SearchTypes.push(new DropdownOption(option.Value, option.Text));
     }
+
     self.SelectedSearchType = ko.observable(results.Data.DefaultSortOption);
     self.SelectedSearchType.subscribe(() => {
         self.IsOutOfSync(true);
@@ -55,7 +62,7 @@ function SearchResultsMvvm(results) {
         self.IsOutOfSync(true);
     });
 
-    self.IsOutOfSync = ko.observable(true);
+    self.IsOutOfSync = ko.observable(false);
 
     self.PreviousIsDisabled = ko.pureComputed(() => self.PageNumber() === 0);
     self.NextIsDisabled = ko.pureComputed(() => self.PageNumberDisplay() >= self.NumberOfPages());
@@ -90,7 +97,6 @@ function SearchResultsMvvm(results) {
 
     self.OnReferenceRemoveCallback = function(reference) {
         if (self.IsLoading() === true) return;
-        self.IsLoading(true);
 
         $.post(self.RemoveReferenceUrl(), {
             projectId: self.ProjectId(),
@@ -101,7 +107,6 @@ function SearchResultsMvvm(results) {
             }
         }).always(() => {
             self.IsOutOfSync(true);
-            self.IsLoading(false);
         });
     };
 
@@ -113,6 +118,7 @@ function SearchResultsMvvm(results) {
             projectId: self.ProjectId()
         }).then(results => {
             self.LoadReferences(results.Data);
+            self.IsOutOfSync(false);
         }).always(() => {
             self.IsLoading(false);
         });
@@ -127,8 +133,12 @@ function SearchResultsMvvm(results) {
             searchData: {
                 PageNumber: self.PageNumber(),
                 ItemsPerPage: self.ItemsPerPage(),
-                SearchByIds: self.References().filter(r => !r.IsPending()).map(element => element.Id()),
-                SearchTags: self.SearchTags().trim().split(',').map(s => s.trim()).filter(s => s),
+                SearchByIds: self.References().map(element => element.Id()),
+                SearchTags: self.SearchTags()
+                    .trim()
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s),
                 ForceNoCache: self.IsOutOfSync(),
                 SearchSortType: self.SelectedSearchType(),
                 SearchDepth: self.SearchDepth()
@@ -153,9 +163,10 @@ function SearchResultsMvvm(results) {
     };
     
     self.AddReferences = references => {
+
         return $.post(self.AddReferenceUrl(), {
             projectId: self.ProjectId(),
-            documentIds: [ references.map(r => r.Id()) ]
+            documentIds: references.map(r => r.Id())
         }).then(results => {
             const imported = results.Data;
             

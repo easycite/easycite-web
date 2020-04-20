@@ -88,6 +88,9 @@ namespace EasyCiteLib.Implementation.Documents
             return results.Results.FirstOrDefault(r => r.Title.Trim().Equals(name.Trim(), StringComparison.CurrentCultureIgnoreCase));
         }
 
+        public Task<string> GetPlainTextCitationAsync(string documentId) => throw new NotImplementedException();
+        public Task<string> GetBibTexCitationAsync(string documentId) => throw new NotImplementedException();
+
         class SearchRequest
         {
             [JsonProperty("queryText")]
