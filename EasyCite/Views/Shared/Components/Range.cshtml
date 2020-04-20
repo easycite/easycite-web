@@ -1,7 +1,8 @@
 <template id="range--template">
+    <label class="mx-auto">Depth: <em data-bind="text: Text"></em></label>
     <input type="range" class="custom-range" data-bind="
         attr: { min: Min, max: Max, step: Step },
         textInput: Value,
-        autoBsTooltip: HelpText">
-    <label>Search Depth: <span data-bind="text: Text"></span></label>
+        autoBsTooltip: HelpText,
+        tooltipPlacement: 'bottom'">
 </template>

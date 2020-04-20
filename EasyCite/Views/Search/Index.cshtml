@@ -1,13 +1,13 @@
 ﻿@model EasyCiteLib.Models.Results<EasyCiteLib.Models.Search.SearchVm>
 
-@{
+    @{
     ViewData["Title"] = "Search";
-}
+    }
 
-@section scripts {
+    @section scripts {
     <script src="~/js/event-handler.js"></script>
     <script src="~/js/dropdown-option.js"></script>
-    
+
     <script src="~/js/ko/slideVisible.js"></script>
     <script src="~/js/ko/enterKey.js"></script>
     <script src="~/js/ko/range.js"></script>
@@ -21,11 +21,11 @@
     <script src="~/js/search/SearchResultsMvvm.js"></script>
     <script src="~/js/search/ImportReferencesMvvm.js"></script>
     <script src="~/js/search/ExportReferencesModal.js"></script>
-}
+    }
 
-@section koApplyBindings {
+    @section koApplyBindings {
     <script>
-        var ApiUrls = new function() {
+        var ApiUrls = new function () {
             var self = this;
 
             self['GetReferences'] = '@Url.Action("GetReferences", "Search")';
@@ -42,133 +42,161 @@
         var mvvm;
         $(() => {
             mvvm = new SearchResultsMvvm(@Json.Serialize(Model));
-            ko.applyBindings(mvvm);
-            
-            setInterval(function () {
-                mvvm.CheckPendingReferences();
-            }, 5000);
+        ko.applyBindings(mvvm);
+
+        setInterval(function () {
+            mvvm.CheckPendingReferences();
+        }, 5000);
         });
     </script>
-}
+    }
 
-@* Components *@
-<partial name="Components/Dropdown" />
-<partial name="Components/Range" />
-<partial name="Components/ConfirmModal" />
+    @* Components *@
+    <partial name="Components/Dropdown" />
+    <partial name="Components/Range" />
+    <partial name="Components/ConfirmModal" />
 
-<div data-bind="template: { name: ConfirmHideReferenceModal.TemplateName, data: ConfirmHideReferenceModal }"></div>
+    <div data-bind="template: { name: ConfirmHideReferenceModal.TemplateName, data: ConfirmHideReferenceModal }"></div>
 
-<div class="search-results container" data-bind="loader: IsLoading">
-    @* <div class="loader d-flex justify-content-center align-items-center">
-        <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Loading...</span>
-        </div>
-    </div> *@
-    <div class="row">
-        <div class="col-12 mb-3 order-xl-last col-xl-4 mb-xl-0">
-            <div class="d-flex justify-content-between align-items-center bg-dark text-light p-2 px-3">
-                <a href="#" class="text-light btn btn-sm" data-bind="click: ImportReferencesModal.Show"><i class="fas fa-upload"></i></a>
-                References
-                <a href="#" class="text-light btn btn-sm" data-bind="click: ShowExportModal, css: { disabled: HasReferences() === false }"><i class="fas fa-download"></i></a>
+    <div class="search-results container" data-bind="loader: IsLoading">
+        @* <div class="loader d-flex justify-content-center align-items-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
             </div>
-            <div class="accordion" data-bind="foreach: References">
-                <div class="card p-2">
-                    <a href="#" class="text-secondary text-decoration-none d-flex align-items-center" data-bind="click: ToggleExpanded, autoBsTooltip: Tooltip, tooltipPlacement: 'left'">
-                        <span class="pl-1 pr-2">
-                            <!-- ko if: IsPending -->
+        </div> *@
+        <div class="row">
+            <div class="col-12 mb-3 order-xl-last col-xl-4 mb-xl-0">
+                <div class="d-flex justify-content-between align-items-center bg-dark text-light p-2 px-3">
+                    <a href="#" class="text-light btn btn-sm" data-bind="click: ImportReferencesModal.Show"><i
+                            class="fas fa-upload"></i></a>
+                    References
+                    <a href="#" class="text-light btn btn-sm"
+                        data-bind="click: ShowExportModal, css: { disabled: HasReferences() === false }"><i
+                            class="fas fa-download"></i></a>
+                </div>
+                <div class="accordion" data-bind="foreach: References">
+                    <div class="card p-2">
+                        <a href="#" class="text-secondary text-decoration-none d-flex align-items-center"
+                            data-bind="click: ToggleExpanded, autoBsTooltip: Tooltip, tooltipPlacement: 'left'">
+                            <span class="pl-1 pr-2">
+                                <!-- ko if: IsPending -->
                                 <div class="spinner-border spinner-border-sm" role="status">
-                                  <span class="sr-only">Loading...</span>
+                                    <span class="sr-only">Loading...</span>
                                 </div>
-                            <!-- /ko -->
-                            <!-- ko ifnot: IsPending -->
+                                <!-- /ko -->
+                                <!-- ko ifnot: IsPending -->
                                 <i class="fas" data-bind="class: ExpandIconClass"></i>
-                            <!-- /ko -->
-                        </span>
-                        <div class="flex-fill" data-bind="text: TitleDisplay, class: PendingTitleClass"></div>
-                        <button type="button" class="btn btn-outline-danger btn-sm py-0 flex-shrink-0 ml-2" data-bind="click: OnRemoveClick, clickBubble: false">
-                            Remove
-                        </button>
-                    </a>
-                    <div class="card-body" data-bind="slideVisible: IsExpanded, html: Abstract" style="display: none;"></div>
+                                <!-- /ko -->
+                            </span>
+                            <div class="flex-fill" data-bind="text: TitleDisplay, class: PendingTitleClass"></div>
+                            <button type="button" class="btn btn-outline-danger btn-sm py-0 flex-shrink-0 ml-2"
+                                data-bind="click: OnRemoveClick, clickBubble: false">
+                                Remove
+                            </button>
+                        </a>
+                        <div class="card-body" data-bind="slideVisible: IsExpanded, html: Abstract"
+                            style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div data-bind="css: { invisible: IsOutOfSync() === false }"
+                    class="d-flex align-items-center justify-content-between py-2 invisible">
+                    <small><em>Your results are out of sync with your references.</em></small>
+                    <button type="button" class="btn btn-primary" data-bind="click: SyncReferences">
+                        Refresh
+                    </button>
                 </div>
             </div>
-
-            <div data-bind="css: { invisible: IsOutOfSync() === false }" class="d-flex align-items-center justify-content-between py-2 invisible">
-                <small><em>Your results are out of sync with your references.</em></small>
-                <button type="button" class="btn btn-primary" data-bind="click: SyncReferences">
-                    Refresh
-                </button>
-            </div>
-        </div>
-        <div class="col-12 col-xl-8 order-xl-first">
-            <div class="row">
-                <h1 class="col-12 text-center py-1">Results</h1>
-                <div class="col-3">
-                    <dropdown params="
+            <div class="col-12 col-xl-8 order-xl-first">
+                <div class="row align-items-end mb-4">
+                    <h1 class="col-12 text-center py-1">Results</h1>
+                    <div class="col-3">
+                        <label>Sort Options</label>
+                        <dropdown params="
                         text: 'Sort Options', 
                         value: SelectedSearchType,
                         options: SearchTypes,
                         optionsText: 'Text',
                         optionsValue: 'Value'"></dropdown>
-                </div>
-                <div class="col text-center">
-                    <range params="
+                    </div>
+                    <div class="col">
+                        <range params="
                         config: SearchDepthConfig,
                         options: SearchDepthOptions,
                         value: SearchDepth
                     "></range>
-                </div>
-                <div class="col-5 pt-1">
-                    <div class="input-group">
-                        <div class="input-group-prepend text-dark">
-                            <div class="input-group-text"><i class="fas fa-search"></i></div>
+                    </div>
+                    <div class="col-6 pt-1">
+                        <div class="input-group">
+                            <div class="input-group-prepend text-dark">
+                                <div class="input-group-text"><i class="fas fa-search"></i></div>
+                            </div>
+                            <input type="text" class="form-control" placeholder="Search"
+                                data-bind="textInput: SearchTags, enterKey: SyncReferences" />
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="button" data-bind="click: SyncReferences, enable: IsOutOfSync">Search</button>
+                            </div>
                         </div>
-                        <input type="text" class="form-control" placeholder="Search" data-bind="textInput: SearchTags, enterKey: SyncReferences" />
                     </div>
                 </div>
-            </div>
-            
-            <div data-bind="visibleAttr: NotHasSearchResults" class="text-center text-secondary font-italic">
-                <hr />
-                There are no search results at this time.
-            </div>
 
-            <div class="accordion" data-bind="foreach: SearchResults">
-                <div class="card p-2 border-left-0 border-right-0 rounded-0">
-                    <div class="d-flex align-items-center">
-                        <a href="#" class="text-dark flex-shrink-0 pr-3"><i class="fas" data-bind="click: ToggleExpanded, class: ExpandIconClass"></i></a>
-                        <a href="#" class="text-dark text-decoration-none flex-fill" data-bind="click: ToggleExpanded" style="min-width: 0;">
-                            <div class="d-flex">
-                                <h5 class="d-inline" data-bind="text: Title, attr: { title: Title }, css: { 'text-truncate': IsExpanded() === false }"></h5>
-                                <span class="px-1">&ndash;</span>
-                                <span class="text-muted pr-2 flex-shrink-0" data-bind="text: PublishDate"></span>
-                            </div>
-                            <div class="text-muted small mt-n1" data-bind="css: { 'text-truncate': IsExpanded() === false }">
-                                <span data-bind="text: AuthorName"></span>&nbsp;&ndash;&nbsp;<span data-bind="text: Conference"></span>
-                            </div>
-                        </a>
-                        <a type="button" class="btn btn-outline-secondary btn-sm ml-2 flex-shrink-0" title="IEEE article" data-bind="attr: { href: Url }" target="_blank"><i class="fas fa-external-link-alt"></i></a>
-                        <button type="button" class="btn btn-outline-secondary btn-sm mx-2 flex-shrink-0" title="Don't show this article again" data-bind="click: OnHideClick, disable: IsAdded"><i class="fas fa-eye-slash"></i></button>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-3 flex-shrink-0" data-bind="click: OnAddClick, disable: IsAdded, text: AddButtonText"></button>
-                    </div>
-                    <div class="result-details small my-2" data-bind="slideVisible: IsExpanded, html: Abstract" style="display: none;"></div>
+                <div data-bind="visibleAttr: NotHasSearchResults" class="text-center text-secondary font-italic">
+                    <hr />
+                    There are no search results at this time.
                 </div>
-            </div>
-            <div class="mt-3 text-center" data-bind="hiddenAttr: NotHasSearchResults">
-                <button type="button" class="btn btn-sm btn-secondary" data-bind="click: SearchPrevious, disable: PreviousIsDisabled">Previous</button>
-                <span class="mx-2 text-muted cursor-default"><span data-bind="text: PageNumberDisplay"></span> of <span data-bind="text: NumberOfPages"></span></span>
-                <button type="button" class="btn btn-sm btn-secondary" data-bind="click: SearchNext, disable: NextIsDisabled">Next</button>
+
+                <div class="accordion" data-bind="foreach: SearchResults">
+                    <div class="card p-2 border-left-0 border-right-0 rounded-0">
+                        <div class="d-flex align-items-center">
+                            <a href="#" class="text-dark flex-shrink-0 pr-3"><i class="fas"
+                                    data-bind="click: ToggleExpanded, class: ExpandIconClass"></i></a>
+                            <a href="#" class="text-dark text-decoration-none flex-fill"
+                                data-bind="click: ToggleExpanded" style="min-width: 0;">
+                                <div class="d-flex">
+                                    <h5 class="d-inline"
+                                        data-bind="text: Title, attr: { title: Title }, css: { 'text-truncate': IsExpanded() === false }">
+                                    </h5>
+                                    <span class="px-1">&ndash;</span>
+                                    <span class="text-muted pr-2 flex-shrink-0" data-bind="text: PublishDate"></span>
+                                </div>
+                                <div class="text-muted small mt-n1"
+                                    data-bind="css: { 'text-truncate': IsExpanded() === false }">
+                                    <span data-bind="text: AuthorName"></span>&nbsp;&ndash;&nbsp;<span
+                                        data-bind="text: Conference"></span>
+                                </div>
+                            </a>
+                            <a type="button" class="btn btn-outline-secondary btn-sm ml-2 flex-shrink-0"
+                                title="IEEE article" data-bind="attr: { href: Url }" target="_blank"><i
+                                    class="fas fa-external-link-alt"></i></a>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mx-2 flex-shrink-0"
+                                title="Don't show this article again"
+                                data-bind="click: OnHideClick, disable: IsAdded"><i
+                                    class="fas fa-eye-slash"></i></button>
+                            <button type="button" class="btn btn-outline-primary btn-sm px-3 flex-shrink-0"
+                                data-bind="click: OnAddClick, disable: IsAdded, text: AddButtonText"></button>
+                        </div>
+                        <div class="result-details small my-2" data-bind="slideVisible: IsExpanded, html: Abstract"
+                            style="display: none;"></div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center" data-bind="hiddenAttr: NotHasSearchResults">
+                    <button type="button" class="btn btn-sm btn-secondary"
+                        data-bind="click: SearchPrevious, disable: PreviousIsDisabled">Previous</button>
+                    <span class="mx-2 text-muted cursor-default"><span data-bind="text: PageNumberDisplay"></span> of
+                        <span data-bind="text: NumberOfPages"></span></span>
+                    <button type="button" class="btn btn-sm btn-secondary"
+                        data-bind="click: SearchNext, disable: NextIsDisabled">Next</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div data-bind="template: { name: 'import-references-modal', data: ImportReferencesModal } "></div>
-<div data-bind="template: { name: 'export-references--modal', data: ExportReferencesModal } "></div>
+    <div data-bind="template: { name: 'import-references-modal', data: ImportReferencesModal } "></div>
+    <div data-bind="template: { name: 'export-references--modal', data: ExportReferencesModal } "></div>
 
-@{ await Html.RenderPartialAsync("Import"); }
+    @{ await Html.RenderPartialAsync("Import"); }
 
-<script type="text/html" id="export-references--modal">
+    <script type="text/html" id="export-references--modal">
     <div class="modal" role="dialog" tabindex="-1" data-bind="element: Element">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
