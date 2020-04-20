@@ -54,7 +54,7 @@ namespace EasyCiteLib.Implementation.Queue
             try
             {
                 await TryCreateRequestSenderAsync();
-                
+
                 var messageContent = new ScrapeMessage
                 {
                     DocumentId = documentId,
@@ -69,13 +69,17 @@ namespace EasyCiteLib.Implementation.Queue
                     TimeToLive = TimeSpan.FromMinutes(5),
                     MessageId = Guid.NewGuid().ToString()
                 };
-                
+
                 _logger.LogInformation($"Sending scrape message for document {documentId}");
-                await _requestSender.RequestAsync(message, rsp => Task.FromResult(true), CancellationToken.None);
+                await _requestSender.RequestAsync(message, rsp => Task.FromResult(true), new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
 
                 await MarkReferencesNotPendingAsync(documentId);
 
                 _logger.LogInformation($"Finished scrape for document {documentId}");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning($"Scrape task for document {documentId} took too long.");
             }
             catch (Exception e)
             {

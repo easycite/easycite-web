@@ -33,28 +33,30 @@ namespace EasyCiteLib.Implementation.Queue
             if (!_pendingRequests.TryAdd(message.MessageId, tcs))
                 throw new InvalidOperationException("Request with the MessageId is already pending.");
 
-            token.Register(tcs.SetCanceled);
-
-            await _sender.SendAsync(message);
-
-            do
+            await using (token.Register(t => ((TaskCompletionSource<Message>)t).TrySetCanceled(), tcs))
             {
-                Message reply = await tcs.Task;
-                try
+                await _sender.SendAsync(message);
+
+                do
                 {
-                    bool processed = await replyHandler(reply);
-                    if (processed)
+                    Message reply = await tcs.Task;
+                    try
                     {
-                        _pendingRequests.TryRemove(reply.CorrelationId, out _);
+                        bool processed = await replyHandler(reply);
+                        if (processed)
+                        {
+                            _pendingRequests.TryRemove(reply.CorrelationId, out _);
+                        }
                     }
-                }
-                catch
-                {
-                    await _receiver.AbandonAsync(reply.SystemProperties.LockToken);
-                    _pendingRequests.TryRemove(reply.CorrelationId, out _);
-                    throw;
-                }
-            } while (token.IsCancellationRequested);
+                    catch
+                    {
+                        await _receiver.AbandonAsync(reply.SystemProperties.LockToken);
+                        _pendingRequests.TryRemove(reply.CorrelationId, out _);
+                        throw;
+                    }
+                } while (token.IsCancellationRequested);
+            }
+
         }
 
         private async Task OnMessageReceived(Message message, CancellationToken cancellation)
