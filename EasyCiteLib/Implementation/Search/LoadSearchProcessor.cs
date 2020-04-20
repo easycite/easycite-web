@@ -85,7 +85,8 @@ namespace EasyCiteLib.Implementation.Search
                 results.Data.SearchDepths.Add(new DropdownOption<SearchDepth>
                 {
                     Text = searchDepth.GetDescription(),
-                    Value = searchDepth
+                    Value = searchDepth,
+                    HelpText = searchDepth.GetHelpText()
                 });
 
             return results;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace EasyCiteLib.Models.Search
 {
@@ -14,8 +15,13 @@ namespace EasyCiteLib.Models.Search
     }
     public enum SearchDepth
     {
+        [HelpText("Fastest search, might not be as thorough")]
         Low = 0,
+        
+        [HelpText("Good balance between speed and thoroughness")]
         Medium = 1,
+        
+        [HelpText("Slowest search, most thorough")]
         High = 2
     }
 }

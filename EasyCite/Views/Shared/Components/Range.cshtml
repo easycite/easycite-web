@@ -1,6 +1,7 @@
 <template id="range--template">
     <input type="range" class="custom-range" data-bind="
         attr: { min: Min, max: Max, step: Step },
-        textInput: Value">
+        textInput: Value,
+        autoBsTooltip: HelpText">
     <label>Search Depth: <span data-bind="text: Text"></span></label>
 </template>

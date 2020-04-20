@@ -31,7 +31,7 @@ function SearchResultsMvvm(results) {
     self.SearchDepthOptions = ko.observableArray();
     for (let i = 0; i < results.Data.SearchDepths.length; i++) {
         const searchDepth = results.Data.SearchDepths[i];
-        self.SearchDepthOptions.push(new DropdownOption(searchDepth.Value, searchDepth.Text));
+        self.SearchDepthOptions.push(new DropdownOption(searchDepth.Value, searchDepth.Text, searchDepth.HelpText));
     }
 
     self.SearchDepth = ko.observable(results.Data.DefaultSearchDepth);
