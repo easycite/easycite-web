@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Models.Search;
@@ -37,6 +38,8 @@ namespace EasyCiteLib.Implementation.Documents
         {
             if (page < 1) page = 1;
             if (itemsPerPage < 0) itemsPerPage = 1;
+
+            query = Regex.Replace(query, @"[\?\!]", "", RegexOptions.None);
 
             string referrerUri = _baseUri + string.Format(_searchUriReferrerFormat, Uri.EscapeDataString(query));
 
