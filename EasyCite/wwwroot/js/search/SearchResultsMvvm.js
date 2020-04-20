@@ -280,13 +280,14 @@ function ReferenceVm(reference) {
     self.TitleDisplay = ko.pureComputed(() => {
         if (!self.Title() && self.IsPending())
             return 'Importing reference...';
-        if (self.IsPending())
-            return self.Title() + ' (pending)';
         
         return self.Title();
     });
     self.PendingTitleClass = ko.pureComputed(() => {
         return self.IsPending() ? 'font-italic text-muted' : '';
+    });
+    self.Tooltip = ko.pureComputed(() => {
+        return self.IsPending() ? 'Importing...' : '';
     });
     
     self.IsExpanded = ko.observable(false);

@@ -16,6 +16,7 @@
     <script src="~/js/ko/dropdown.js"></script>
     <script src="~/js/ko/confirmModal.js"></script>
     <script src="~/js/ko/visibleHiddenAttr.js"></script>
+    <script src="~/js/ko/bsTooltip.js"></script>
 
     <script src="~/js/search/SearchResultsMvvm.js"></script>
     <script src="~/js/search/ImportReferencesMvvm.js"></script>
@@ -72,10 +73,19 @@
             </div>
             <div class="accordion" data-bind="foreach: References">
                 <div class="card p-2">
-                    <a href="#" class="text-secondary text-decoration-none d-flex align-items-center" data-bind="click: ToggleExpanded">
-                        <span class="px-1"><i class="fas" data-bind="class: ExpandIconClass"></i></span>
+                    <a href="#" class="text-secondary text-decoration-none d-flex align-items-center" data-bind="click: ToggleExpanded, autoBsTooltip: Tooltip, tooltipPlacement: 'left'">
+                        <span class="pl-1 pr-2">
+                            <!-- ko if: IsPending -->
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                  <span class="sr-only">Loading...</span>
+                                </div>
+                            <!-- /ko -->
+                            <!-- ko ifnot: IsPending -->
+                                <i class="fas" data-bind="class: ExpandIconClass"></i>
+                            <!-- /ko -->
+                        </span>
                         <div class="flex-fill" data-bind="text: TitleDisplay, class: PendingTitleClass"></div>
-                        <button type="button" class="btn btn-outline-danger btn-sm py-0 flex-shrink-0" data-bind="click: OnRemoveClick, clickBubble: false">
+                        <button type="button" class="btn btn-outline-danger btn-sm py-0 flex-shrink-0 ml-2" data-bind="click: OnRemoveClick, clickBubble: false">
                             Remove
                         </button>
                     </a>
