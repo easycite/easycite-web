@@ -27,6 +27,7 @@ namespace EasyCiteLib.Implementation.Queue
 
         private readonly string _serviceBusConnectionString;
 
+        readonly SemaphoreSlim _requestSenderCreateLock = new SemaphoreSlim(1, 1);
         private RequestReplySender _requestSender;
         private string _completeQueueName;
 
@@ -101,15 +102,24 @@ namespace EasyCiteLib.Implementation.Queue
 
         async Task TryCreateRequestSenderAsync()
         {
-            if (_requestSender != null)
-                return;
+            try
+            {
+                await _requestSenderCreateLock.WaitAsync();
+                
+                if (_requestSender != null)
+                    return;
 
-            await CreateNewCompleteQueueAsync();
+                await CreateNewCompleteQueueAsync();
 
-            var sender = new MessageSender(_serviceBusConnectionString, _scrapeQueueName);
-            var receiver = new MessageReceiver(_serviceBusConnectionString, _completeQueueName);
+                var sender = new MessageSender(_serviceBusConnectionString, _scrapeQueueName);
+                var receiver = new MessageReceiver(_serviceBusConnectionString, _completeQueueName);
 
-            _requestSender = new RequestReplySender(sender, receiver);
+                _requestSender = new RequestReplySender(sender, receiver);
+            }
+            finally
+            {
+                _requestSenderCreateLock.Release();
+            }
         }
 
         async Task CreateNewCompleteQueueAsync()
