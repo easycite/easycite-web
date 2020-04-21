@@ -10,8 +10,11 @@ namespace EasyCiteLib.Repository
         public string Id { get; set; }
         [JsonProperty("title")]
         public string Title { get; set; }
-        [JsonProperty("publishDate")]
-        public DateTime PublishDate { get; set; }
+        [JsonProperty("publishDateStr")]
+        public string PublishDate { get; set; }
+        [JsonProperty("publishYear")]
+        public int? PublishYear { get; set; }
+
         [JsonProperty("abstract")]
         public string Abstract { get; set; }
         [JsonProperty("publicationTitle")]

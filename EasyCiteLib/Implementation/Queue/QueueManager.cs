@@ -66,12 +66,12 @@ namespace EasyCiteLib.Implementation.Queue
 
                 var message = new Message(Encoding.UTF8.GetBytes(messageJson))
                 {
-                    TimeToLive = TimeSpan.FromMinutes(5),
+                    TimeToLive = TimeSpan.FromMinutes(10),
                     MessageId = Guid.NewGuid().ToString()
                 };
 
                 _logger.LogInformation($"Sending scrape message for document {documentId}");
-                await _requestSender.RequestAsync(message, rsp => Task.FromResult(true), new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token);
+                await _requestSender.RequestAsync(message, rsp => Task.FromResult(true), new CancellationTokenSource(TimeSpan.FromMinutes(10)).Token);
 
                 await MarkReferencesNotPendingAsync(documentId);
 

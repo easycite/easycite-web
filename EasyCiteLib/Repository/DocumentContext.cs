@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyCiteLib.Models.Search;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Configuration;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Newtonsoft.Json;
@@ -15,12 +13,10 @@ namespace EasyCiteLib.Repository
     public class DocumentContext
     {
         private readonly IGraphClientFactory _graphClientFactory;
-        private readonly int _resultsSearchDepth;
 
-        public DocumentContext(IGraphClientFactory graphClientFactory, IConfiguration configuration)
+        public DocumentContext(IGraphClientFactory graphClientFactory)
         {
             _graphClientFactory = graphClientFactory;
-            _resultsSearchDepth = int.Parse(configuration["ResultsSearchDepth"]);
         }
 
         public async Task<List<Document>> GetDocumentsAsync(IEnumerable<string> documentIds)
@@ -111,7 +107,7 @@ namespace EasyCiteLib.Repository
                     .ThenByDescending(r => r.Reference.PageRank)
                     .Select(r => r.Reference.Id)
                     .Except(documentIdList),
-                SearchSortType.Recency => results.OrderByDescending(d => d.Reference.PublishDate).Select(d => d.Reference.Id).Distinct(),
+                SearchSortType.Recency => results.OrderByDescending(d => d.Reference.PublishYear).Select(d => d.Reference.Id).Distinct(),
                 SearchSortType.AuthorPopularity => results.OrderByDescending(d => d.AuthorPopularity).Select(d => d.Reference.Id).Distinct(),
                 _ => throw new ArgumentOutOfRangeException(nameof(sortType), sortType, null)
             };
@@ -163,8 +159,8 @@ namespace EasyCiteLib.Repository
             [JsonProperty("pageRank")]
             public double PageRank { get; set; }
 
-            [JsonProperty("publishDate")]
-            public DateTime? PublishDate { get; set; }
+            [JsonProperty("publishYear")]
+            public int? PublishYear { get; set; }
         }
 
         class DocumentResult

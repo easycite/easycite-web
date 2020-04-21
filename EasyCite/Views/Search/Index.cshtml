@@ -145,8 +145,10 @@
                         <a href="#" class="text-dark text-decoration-none flex-fill" data-bind="click: ToggleExpanded" style="min-width: 0;">
                             <div class="d-flex">
                                 <h5 class="d-inline" data-bind="text: Title, attr: { title: Title }, css: { 'text-truncate': IsExpanded() === false }"></h5>
+                                <!-- ko if: PublishDate -->
                                 <span class="px-1">&ndash;</span>
                                 <span class="text-muted pr-2 flex-shrink-0" data-bind="text: PublishDate"></span>
+                                <!-- /ko -->
                             </div>
                             <div class="text-muted small mt-n1" data-bind="css: { 'text-truncate': IsExpanded() === false }">
                                 <span data-bind="text: AuthorName"></span>&nbsp;&ndash;&nbsp;<span data-bind="text: Conference"></span>
