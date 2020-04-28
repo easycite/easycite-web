@@ -6,7 +6,6 @@ using EasyCiteLib.Models.Search;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Newtonsoft.Json;
-using static EasyCiteLib.Implementation.Helpers.RunExtension;
 
 namespace EasyCiteLib.Repository
 {
@@ -25,56 +24,26 @@ namespace EasyCiteLib.Repository
 
             await client.ConnectAsync();
 
-            Task<List<Document>> getDocAndAuthorsTask = Run(async () =>
-            {
-                var query = client.Cypher
-                    .Unwind(documentIds, "docId")
-                    .Match("(d:Document)")
-                    .Where("d.id = docId")
-                    .OptionalMatch("(a:Author)-[:AUTHORED]->(d)")
-                    .Return((d, a) => new
-                    {
-                        Document = d.As<Document>(),
-                        Authors = a.CollectAs<Author>()
-                    });
+            var query = client.Cypher
+                .Unwind(documentIds, "docId")
+                .Match("(d:Document)")
+                .Where("d.id = docId")
+                .OptionalMatch("(a:Author)-[:AUTHORED]->(d)")
+                .Return((d, a) => new
+                {
+                    Document = d.As<Document>(),
+                    Authors = a.CollectAs<Author>()
+                });
 
-                return (await query.ResultsAsync).Select(r =>
-                    {
-                        r.Document.Authors = r.Authors.ToList();
-                        return r.Document;
-                    })
-                    .ToList();
-            });
-
-            Task<Dictionary<string, List<string>>> getKeywordsTask = Run(async () =>
-            {
-                var query = client.Cypher
-                    .Unwind(documentIds, "docId")
-                    .Match("(d:Document)")
-                    .Where("d.id = docId")
-                    .Match("(d)-[:TAGGED_BY]->(k:Keyword)")
-                    .Return(() => new
-                    {
-                        DocumentId = Return.As<string>("d.id"),
-                        Keywords = Return.As<IEnumerable<string>>("collect(k.keyword)")
-                    });
-
-                return (await query.ResultsAsync).ToDictionary(r => r.DocumentId, r => r.Keywords.ToList());
-            });
-
-            await Task.WhenAll(getDocAndAuthorsTask, getKeywordsTask);
-
-            List<Document> documents = getDocAndAuthorsTask.Result;
-            Dictionary<string, List<string>> keywordMap = getKeywordsTask.Result;
-
-            foreach (var doc in documents)
-                if (keywordMap.TryGetValue(doc.Id, out List<string> keywords))
-                    doc.Keywords = keywords;
-
-            return documents;
+            return (await query.ResultsAsync).Select(r =>
+                {
+                    r.Document.Authors = r.Authors.ToList();
+                    return r.Document;
+                })
+                .ToList();
         }
 
-        public async Task<List<string>> SearchDocumentsAsync(IEnumerable<string> documentIds, SearchSortType sortType, int depth)
+        public async Task<List<string>> SearchDocumentsAsync(IEnumerable<string> documentIds, SearchSortType sortType, int depth, ICollection<string> anyTags, ICollection<string> allTags)
         {
             if (depth < 1)
                 depth = 1;
@@ -92,27 +61,34 @@ namespace EasyCiteLib.Repository
 
             ICypherFluentQuery<DocumentResult> query = ChainQueryPart(queryPart, false);
 
-            IEnumerable<DocumentResult> results = (await query.ResultsAsync).Where(r => !documentIdList.Contains(r.Reference.Id));
+            var queryResults = (await query.ResultsAsync)
+                .Where(r => !documentIdList.Contains(r.Reference.Id))
+                .GroupBy(r => r.Reference.Id)
+                .Select(g => new
+                {
+                    Count = g.Count(),
+                    Result = g.First()
+                });
 
-            IEnumerable<string> idList = sortType switch
+            var results = (sortType switch
             {
-                SearchSortType.PageRank => results
-                    .GroupBy(r => r.Reference.Id)
-                    .Select(g => new
-                    {
-                        Count = g.Count(),
-                        Reference = g.First().Reference
-                    })
+                SearchSortType.PageRank => queryResults
                     .OrderByDescending(r => r.Count)
-                    .ThenByDescending(r => r.Reference.PageRank)
-                    .Select(r => r.Reference.Id)
-                    .Except(documentIdList),
-                SearchSortType.Recency => results.OrderByDescending(d => d.Reference.PublishYear).Select(d => d.Reference.Id).Distinct(),
-                SearchSortType.AuthorPopularity => results.OrderByDescending(d => d.AuthorPopularity).Select(d => d.Reference.Id).Distinct(),
+                    .ThenByDescending(r => r.Result.Reference.PageRank),
+                SearchSortType.Recency => queryResults
+                    .OrderByDescending(d => d.Result.Reference.PublishYear),
+                SearchSortType.AuthorPopularity => queryResults.OrderByDescending(d => d.Result.AuthorPopularity),
                 _ => throw new ArgumentOutOfRangeException(nameof(sortType), sortType, null)
-            };
+            }).Select(r => r.Result);
 
-            return idList.ToList();
+            if (anyTags.Count > 0 || allTags.Count > 0)
+            {
+                results = results.Where(d => d.Keywords.Count > 0
+                    && allTags.All(k => d.Keywords.Contains(k))
+                    && (anyTags.Count == 0 || anyTags.Any(k => d.Keywords.Contains(k))));
+            }
+
+            return results.Select(r => r.Reference.Id).ToList();
 
             ICypherFluentQuery<DocumentResult> ChainQueryPart(ICypherFluentQuery q, bool refTo)
             {
@@ -125,11 +101,13 @@ namespace EasyCiteLib.Repository
                     .Match($"(doc){dirFront}[:CITES*1..{depth}]{dirBack}(ref:Document)")
                     .Where("ref.visited = true")
                     .Match("(a:Author)-[:AUTHORED]->(ref)")
+                    .OptionalMatch("(ref)-[:TAGGED_BY]->(k:Keyword)")
                     .Return(@ref => new DocumentResult
                     {
                         DocumentId = Return.As<string>("doc.id"),
                         Reference = @ref.As<ReferenceResult>(),
-                        AuthorPopularity = Return.As<double>("max(a.popularity)")
+                        AuthorPopularity = Return.As<double>("max(a.popularity)"),
+                        Keywords = Return.As<List<string>>("collect(k.keyword)")
                     });
             }
         }
@@ -170,6 +148,8 @@ namespace EasyCiteLib.Repository
             public ReferenceResult Reference { get; set; }
 
             public double AuthorPopularity { get; set; }
+            
+            public List<string> Keywords { get; set; }
         }
     }
 }
