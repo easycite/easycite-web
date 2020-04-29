@@ -1,6 +1,5 @@
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace EasyCiteLib.Repository
 {
@@ -25,8 +24,5 @@ namespace EasyCiteLib.Repository
 
         [JsonIgnore]
         public List<Author> Authors { get; set; }
-        
-        [JsonIgnore]
-        public List<string> Keywords { get; set; }
     }
 }

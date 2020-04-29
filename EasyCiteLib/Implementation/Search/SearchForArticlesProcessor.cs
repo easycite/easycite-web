@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyCiteLib.Interface.Documents;
 using EasyCiteLib.Interface.Search;
 using EasyCiteLib.Models;
 using EasyCiteLib.Models.Search;
@@ -15,28 +16,30 @@ namespace EasyCiteLib.Implementation.Search
     {
         private readonly ISearchResultsCacheManager _searchResultsCacheManager;
         private readonly IGenericDataContextAsync<ProjectHiddenResult> _hiddenResultContext;
+        private readonly IGetDocumentProcessor _getDocumentProcessor;
 
-        public SearchForArticlesProcessor(ISearchResultsCacheManager searchResultsCacheManager, IGenericDataContextAsync<ProjectHiddenResult> hiddenResultContext)
+        public SearchForArticlesProcessor(ISearchResultsCacheManager searchResultsCacheManager, IGenericDataContextAsync<ProjectHiddenResult> hiddenResultContext, IGetDocumentProcessor getDocumentProcessor)
         {
             _searchResultsCacheManager = searchResultsCacheManager;
             _hiddenResultContext = hiddenResultContext;
+            _getDocumentProcessor = getDocumentProcessor;
         }
 
         public async Task<Results<SearchResultsVm>> SearchAsync(int projectId, SearchData searchData)
         {
             int offset = Math.Max(searchData.PageNumber, 0) * searchData.ItemsPerPage;
 
-            IList<Document> documents;
+            IReadOnlyList<Document> documents;
             int totalCount;
 
             try
             {
                 var hiddenResults = await GetHiddenResultsAsync(projectId);
 
-                List<Document> allResults = (await _searchResultsCacheManager.GetSearchResultsAsync(projectId, searchData)).Where(d => !hiddenResults.Contains(d.Id)).ToList();
+                var allResultIds = (await _searchResultsCacheManager.GetSearchResultsAsync(projectId, searchData)).Except(hiddenResults).ToList();
 
-                documents = allResults.Skip(offset).Take(searchData.ItemsPerPage).ToList();
-                totalCount = allResults.Count;
+                documents = await _getDocumentProcessor.GetDocumentsAsync(allResultIds.Skip(offset).Take(searchData.ItemsPerPage));
+                totalCount = allResultIds.Count;
             }
             catch (Exception e)
             {
