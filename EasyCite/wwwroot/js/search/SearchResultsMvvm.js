@@ -280,6 +280,7 @@ function ReferenceVm(reference) {
     self.Title = ko.observable(reference.Title);
     self.Abstract = ko.observable(reference.Abstract);
     self.IsPending = ko.observable(reference.IsPending);
+    self.Url = ko.pureComputed(() => 'https://ieeexplore.ieee.org/document/' + self.Id());
     
     self.TitleDisplay = ko.pureComputed(() => {
         if (!self.Title() && self.IsPending())

@@ -90,7 +90,12 @@
                             Remove
                         </button>
                     </a>
-                    <div class="card-body" data-bind="slideVisible: IsExpanded, html: Abstract" style="display: none;"></div>
+                    <div class="card-body" data-bind="slideVisible: IsExpanded" style="display: none;">
+                        <div class="mb-2">
+                            <a class="small" title="IEEE article" data-bind="attr: { href: Url }" target="_blank">Link to article</a>
+                        </div>
+                        <div data-bind="html: Abstract"></div>
+                    </div>
                 </div>
             </div>
 
