@@ -24,5 +24,8 @@ namespace EasyCiteLib.Repository
 
         [JsonIgnore]
         public List<Author> Authors { get; set; }
+        
+        [JsonIgnore]
+        public int CiteCount { get; set; }
     }
 }

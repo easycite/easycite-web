@@ -8,5 +8,6 @@
         public string AuthorName { get; set; }
         public string Conference { get; set; }
         public string Abstract { get; set; }
+        public int CiteCount { get; set; }
     }
 }

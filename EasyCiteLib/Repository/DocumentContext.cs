@@ -6,6 +6,7 @@ using EasyCiteLib.Models.Search;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Newtonsoft.Json;
+using static EasyCiteLib.Implementation.Helpers.RunExtension;
 
 namespace EasyCiteLib.Repository
 {
@@ -24,23 +25,55 @@ namespace EasyCiteLib.Repository
 
             await client.ConnectAsync();
 
-            var query = client.Cypher
-                .Unwind(documentIds, "docId")
-                .Match("(d:Document)")
-                .Where("d.id = docId")
-                .OptionalMatch("(a:Author)-[:AUTHORED]->(d)")
-                .Return((d, a) => new
-                {
-                    Document = d.As<Document>(),
-                    Authors = a.CollectAs<Author>()
-                });
+            var idList = documentIds.ToList();
 
-            return (await query.ResultsAsync).Select(r =>
-                {
-                    r.Document.Authors = r.Authors.ToList();
-                    return r.Document;
-                })
-                .ToList();
+            Task<List<Document>> getDocAndAuthorsTask = Run(async () =>
+            {
+                var query = client.Cypher
+                    .Unwind(idList, "docId")
+                    .Match("(d:Document)")
+                    .Where("d.id = docId")
+                    .OptionalMatch("(a:Author)-[:AUTHORED]->(d)")
+                    .Return((d, a) => new
+                    {
+                        Document = d.As<Document>(),
+                        Authors = a.CollectAs<Author>()
+                    });
+
+                return (await query.ResultsAsync).Select(r =>
+                    {
+                        r.Document.Authors = r.Authors.ToList();
+                        return r.Document;
+                    })
+                    .ToList();
+            });
+
+            var getCiteCountTask = Run(async () =>
+            {
+                var query = client.Cypher
+                    .Unwind(idList, "docId")
+                    .Match("(d:Document)")
+                    .Where("d.id = docId")
+                    .Match("(r:Document)-[:CITES]->(d)")
+                    .Return(r => new
+                    {
+                        DocumentId = Return.As<string>("d.id"),
+                        CiteCount = r.Count()
+                    });
+
+                return (await query.ResultsAsync).ToDictionary(r => r.DocumentId, r => r.CiteCount);
+            });
+
+            await Task.WhenAll(getDocAndAuthorsTask, getCiteCountTask);
+
+            List<Document> documents = getDocAndAuthorsTask.Result;
+            Dictionary<string, long> citeCountMap = getCiteCountTask.Result;
+            
+            foreach (var doc in documents)
+                if (citeCountMap.TryGetValue(doc.Id, out long citeCount))
+                    doc.CiteCount = (int)citeCount;
+
+            return documents;
         }
 
         public async Task<List<string>> SearchDocumentsAsync(IEnumerable<string> documentIds, SearchSortType sortType, int depth, ICollection<string> anyTags, ICollection<string> allTags)
