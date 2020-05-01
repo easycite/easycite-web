@@ -325,6 +325,7 @@ function ResultVm(result) {
     self.AuthorName = ko.observable(result.AuthorName);
     self.Conference = ko.observable(result.Conference);
     self.Abstract = ko.observable(result.Abstract);
+    self.CiteCount = ko.observable(result.CiteCount);
     self.Url = ko.pureComputed(() => 'https://ieeexplore.ieee.org/document/' + self.Id());
 
     self.IsAdded = ko.observable(false);

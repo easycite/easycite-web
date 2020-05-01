@@ -55,7 +55,8 @@ namespace EasyCiteLib.Implementation.Search
                         PublishDate = d.PublishDate,
                         Conference = d.PublicationTitle,
                         Abstract = d.Abstract,
-                        AuthorName = string.Join(", ", d.Authors.Select(a => a.Name))
+                        AuthorName = string.Join(", ", d.Authors.Select(a => a.Name)),
+                        CiteCount = d.CiteCount
                     })
                     .ToList(),
                 NumberOfPages = (int)Math.Ceiling((double)totalCount / searchData.ItemsPerPage)
